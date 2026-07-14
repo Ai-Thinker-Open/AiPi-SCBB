@@ -132,8 +132,12 @@ else()
     endif()
 endif()
 
-# Create library target
-add_library(aipi_scbb STATIC)
+# Create library target (INTERFACE when no sources, STATIC otherwise)
+if(SCBB_SOURCES)
+    add_library(aipi_scbb STATIC)
+else()
+    add_library(aipi_scbb INTERFACE)
+endif()
 
 # ALIAS target for use in other CMake projects
 add_library(AiPi::SCBB ALIAS aipi_scbb)

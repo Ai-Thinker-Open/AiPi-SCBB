@@ -1,0 +1,4 @@
+build/
+.config
+scbb_config.h
+scbb_config.cmake

@@ -11,14 +11,16 @@
 #ifndef __AXK_WS2812_H__
 #define __AXK_WS2812_H__
 #include "color_mode.h"
-#if __has_include("stm32f10x_pwm_dma.h")
+#include "scbb_config.h"
 
-#include "stm32f10x_pwm_dma.h"
-// 定义I2C操作函数
+#ifdef SCBB_BSP_PWM_DMA_HEADER
+#include SCBB_BSP_PWM_DMA_HEADER
 #define AXK_WS2812_ACLL(_func, ...) bsp_pwm_dma_##_func(__VA_ARGS__)
-#pragma message "stm32f10x_pwm_dma.h included for WS2812 PWM operations"
+#elif __has_include("stm32f10x_pwm_dma.h")
+#include "stm32f10x_pwm_dma.h"
+#define AXK_WS2812_ACLL(_func, ...) bsp_pwm_dma_##_func(__VA_ARGS__)
 #else
-#error "Please include the appropriate for WS2812."
+#error "Please include the appropriate PWM DMA header for WS2812 or set SCBB_BSP_PWM_DMA_HEADER in scbb_config.h."
 #endif
 
 // 添加bsp_pwm_dma_deinit函数声明

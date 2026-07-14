@@ -2,17 +2,58 @@
 
 ## What this is
 
-Peripheral driver library for **STM32F10x** (ARM Cortex-M3, HAL-based). Provides hardware abstraction for external components over I2C, PWM+DMA, and UART. Depends on **FreeRTOS** and **STM32 HAL** (`stm32f1xx_hal.h`). This is a **library**, not a complete firmware — there is no build system, linker script, or `main()` here.
+Peripheral driver library for **STM32F10x** (ARM Cortex-M3, HAL-based). Provides hardware abstraction for external components over I2C, PWM+DMA, and UART. Depends on **FreeRTOS** and **STM32 HAL** (`stm32f1xx_hal.h`). This is a **library**, not a complete firmware — there is no linker script or `main()` here.
 
-## CMake 构建
+## 环境准备（Windows）
 
-通过 CMake 配置构建：
+C/C++ 编译和 menuconfig 依赖 MSYS2 终端，请先安装：
+
+1. 下载安装 MSYS2：https://www.msys2.org/
+2. 安装完成后打开 **MSYS2 UCRT64** 终端
+3. 安装必要工具：
+```bash
+pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-gcc make
+```
+4. 安装 Python 依赖（用于 menuconfig）：
+```bash
+pacman -S mingw-w64-ucrt-x86_64-python pip
+pip install kconfiglib windows-curses
+```
+5. 将 `C:\msys64\ucrt64\bin` 添加到系统 PATH（编译工具链需要）
+
+后续所有编译操作请在 **MSYS2 UCRT64** 终端中执行。
+
+## 配置模块
+
+### 方法 1: 图形化配置（推荐）
+
+需要先安装依赖：
+```bash
+pip install kconfiglib windows-curses
+```
+
+**Windows：** 双击 `menuconfig.bat`，或在终端运行：
+```bash
+menuconfig.bat
+```
+
+**Linux/Mac：**
+```bash
+make menuconfig
+```
+
+在界面中勾选需要的模块，保存后会自动生成 `scbb_config.h`。
+
+### 方法 2: 手动编辑配置文件
+
+1. 复制 `scbb_config_template.h` 为 `scbb_config.h`
+2. 取消注释需要的模块 `#define`
+3. 重新编译
+
+### 方法 3: CMake -D 参数
 
 ```bash
-# 配置
 cmake -B build
-
-# 构建
 cmake --build build
 ```
 
@@ -20,7 +61,7 @@ cmake --build build
 
 | 选项 | 默认 | 说明 |
 |------|------|------|
-| `SCBB_USE_BSP` | OFF | 使用内置 STM32F10x BSP，ON 时包含内置 BSP |
+| `SCBB_USE_BSP` | OFF | 使用内置 STM32F10x BSP |
 | `SCBB_CH224A` | OFF | USB-PD 驱动 (I2C) |
 | `SCBB_SHT3X` | OFF | 温湿度传感器 (I2C) |
 | `SCBB_WS2812` | OFF | LED 灯条驱动 (PWM+DMA) |
@@ -29,54 +70,6 @@ cmake --build build
 | `SCBB_BSP_UART_HEADER` | `stm32f10x_bsp_uart.h` | 自定义 UART BSP 头文件名 |
 | `SCBB_BSP_GPIO_HEADER` | `stm32f10x_bsp_gpio.h` | 自定义 GPIO BSP 头文件名 |
 | `SCBB_BSP_DELAY_HEADER` | `stm32f10x_delay.h` | 自定义延时 BSP 头文件名 |
-
-BSP 说明：
-
-- `SCBB_USE_BSP=ON`：自动包含 `STM32F10x_bsp/` 下的 I2C、PWM+DMA、Delay
-- `SCBB_USE_BSP=OFF`：用户需自行提供 BSP 实现，并通过 `SCBB_BSP_*_HEADER` 指定头文件名
-
-## 外部工程引用
-
-### 方法 1: 手动复制源码
-
-最简单，直接复制所需模块到你的工程：
-
-```
-your_project/
-├── CMakeLists.txt
-├── scbb/                    # 复制整个 SCBB 目录
-│   ├── HXD039B2/
-│   ├── SHT3x/
-│   └── ...
-```
-
-外部工程 `CMakeLists.txt`：
-
-```cmake
-# 配置模块
-set(SCBB_HXD039B2 ON CACHE BOOL "" FORCE)
-set(SCBB_SHT3X ON CACHE BOOL "" FORCE)
-set(SCBB_USE_BSP OFF CACHE BOOL "" FORCE)
-
-# 添加子目录
-add_subdirectory(scbb)
-
-# 链接到你的目标
-target_link_libraries(your_target PRIVATE AiPi::SCBB)
-```
-
-### 方法 2: git clone
-
-```bash
-git clone https://github.com/Ai-Thinker-Open/AiPi-SCBB.git libs/scbb
-```
-
-```cmake
-set(SCBB_HXD039B2 ON CACHE BOOL "" FORCE)
-set(SCBB_USE_BSP OFF CACHE BOOL "" FORCE)
-add_subdirectory(libs/scbb)
-target_link_libraries(your_target PRIVATE AiPi::SCBB)
-```
 
 ## Directory structure
 

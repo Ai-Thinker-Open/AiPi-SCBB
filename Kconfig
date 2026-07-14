@@ -1,0 +1,66 @@
+menu "AiPi-SCBB Configuration"
+
+    menu "Modules"
+        config SCBB_CH224A_ENABLED
+            bool "Enable CH224A USB-PD driver"
+            default n
+            help
+                Enable CH224A USB-PD sink controller driver (I2C).
+
+        config SCBB_SHT3X_ENABLED
+            bool "Enable SHT3x temperature/humidity sensor"
+            default n
+            help
+                Enable SHT3x digital temperature and humidity sensor driver (I2C).
+
+        config SCBB_WS2812_ENABLED
+            bool "Enable WS2812 LED strip driver"
+            default n
+            help
+                Enable WS2812 addressable RGB LED strip driver (PWM+DMA).
+
+        config SCBB_HXD039B2_ENABLED
+            bool "Enable HXD039B2 IR encoder/decoder"
+            default n
+            help
+                Enable HXD039B2 infrared encoder/decoder driver (UART).
+    endmenu
+
+    menu "BSP Headers"
+        config SCBB_BSP_I2C_HEADER
+            string "I2C BSP header file"
+            default ""
+            help
+                I2C BSP header filename (for CH224A, SHT3x).
+                Leave empty to use default.
+
+        config SCBB_BSP_GPIO_HEADER
+            string "GPIO BSP header file"
+            default ""
+            help
+                GPIO BSP header filename (for HXD039B2).
+                Leave empty to use default.
+
+        config SCBB_BSP_DELAY_HEADER
+            string "Delay BSP header file"
+            default ""
+            help
+                Delay BSP header filename.
+                Leave empty to use default.
+
+        config SCBB_BSP_UART_HEADER
+            string "UART BSP header file"
+            default ""
+            help
+                UART BSP header filename (for HXD039B2).
+                Leave empty to use default.
+
+        config SCBB_BSP_PWM_DMA_HEADER
+            string "PWM DMA BSP header file"
+            default ""
+            help
+                PWM DMA BSP header filename (for WS2812).
+                Leave empty to use default.
+    endmenu
+
+endmenu

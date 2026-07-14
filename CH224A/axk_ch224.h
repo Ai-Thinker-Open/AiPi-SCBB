@@ -11,22 +11,22 @@
 #ifndef _AXK_CH224_H_
 #define _AXK_CH224_H_
 
+#include "scbb_config.h"
+
 /**
  * @brief I2C BSP 头文件配置。
- *        如果需要使用自定义 BSP，请在 CMake 中设置 SCBB_BSP_I2C_HEADER。
+ *        优先使用 scbb_config.h 中的 SCBB_BSP_I2C_HEADER 定义。
  */
 #ifdef SCBB_BSP_I2C_HEADER
 #include SCBB_BSP_I2C_HEADER
 #define AXK_CH224_I2C_ACLL(_func, ...) bsp_i2c_##_func(__VA_ARGS__)
 #define AXK_CH224_DELAY_MS(x) delay_ms(x)
-#else
-#if __has_include("stm32f10x_bsp_i2c.h")
+#elif __has_include("stm32f10x_bsp_i2c.h")
 #include "stm32f10x_bsp_i2c.h"
 #define AXK_CH224_I2C_ACLL(_func, ...) bsp_i2c_##_func(__VA_ARGS__)
 #define AXK_CH224_DELAY_MS(x) delay_ms(x)
 #else
-#error "Please include the appropriate I2C header for CH224 or set SCBB_BSP_I2C_HEADER."
-#endif
+#error "Please include the appropriate I2C header for CH224 or set SCBB_BSP_I2C_HEADER in scbb_config.h."
 #endif
 
 #define AXK_CH224_I2C_ADDR 0x22
