@@ -17,16 +17,17 @@
  */
 #ifdef SCBB_BSP_I2C_HEADER
 #include SCBB_BSP_I2C_HEADER
+#define AXK_SHT3X_I2C_ACLL(_func, ...) bsp_i2c_##_func(__VA_ARGS__)
+#define AXK_SHT3X_DELAY_MS(x) delay_ms(x)
 #else
 #if __has_include("stm32f10x_bsp_i2c.h")
 #include "stm32f10x_bsp_i2c.h"
+#define AXK_SHT3X_I2C_ACLL(_func, ...) bsp_i2c_##_func(__VA_ARGS__)
+#define AXK_SHT3X_DELAY_MS(x) delay_ms(x)
 #else
 #error "Please include the appropriate I2C header for SHT3x or set SCBB_BSP_I2C_HEADER."
 #endif
 #endif
-
-#define AXK_SHT3X_DELAY_MS(x) delay_ms(x)
-#define AXK_SHT3X_I2C_ACLL(_func, ...) bsp_i2c_##_func(__VA_ARGS__)
 
 #define AXK_SHT3X_ADDRESS 0x44
 

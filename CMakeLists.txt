@@ -18,8 +18,8 @@ option(SCBB_SHT3X     "Enable SHT3x temperature/humidity sensor (I2C)" OFF)
 option(SCBB_WS2812    "Enable WS2812 LED strip driver (PWM+DMA)"  OFF)
 option(SCBB_HXD039B2  "Enable HXD039B2 IR encoder/decoder (UART)" OFF)
 
-# BSP options (set OFF if using custom BSP)
-option(SCBB_USE_BSP   "Use built-in STM32F10x BSP"                ON)
+# BSP options (set ON if using built-in BSP)
+option(SCBB_USE_BSP   "Use built-in STM32F10x BSP"                OFF)
 
 # Custom BSP header names (for SCBB_USE_BSP=OFF)
 set(SCBB_BSP_I2C_HEADER "stm32f10x_bsp_i2c.h" CACHE STRING "Custom I2C BSP header")

@@ -17,9 +17,13 @@
  */
 #ifdef SCBB_BSP_UART_HEADER
 #include SCBB_BSP_UART_HEADER
+#define AXK_HXD039B2_UART_ACLL(_func, ...) bsp_uart_##_func(__VA_ARGS__)
+#define AXK_HXD039B2_DELAY_MS(x) delay_ms((x))
 #else
 #if __has_include("stm32f10x_bsp_uart.h")
 #include "stm32f10x_bsp_uart.h"
+#define AXK_HXD039B2_UART_ACLL(_func, ...) bsp_uart_##_func(__VA_ARGS__)
+#define AXK_HXD039B2_DELAY_MS(x) delay_ms((x))
 #else
 #error "Please include the appropriate UART header for HXD039B2 or set SCBB_BSP_UART_HEADER."
 #endif
@@ -31,15 +35,13 @@
  */
 #ifdef SCBB_BSP_GPIO_HEADER
 #include SCBB_BSP_GPIO_HEADER
+#define AXK_HXD039B2_GPIO_ACLL(_func, ...) bsp_gpio_##_func(__VA_ARGS__)
 #else
 #if __has_include("stm32f10x_bsp_gpio.h")
 #include "stm32f10x_bsp_gpio.h"
-#endif
-#endif
-
-#define AXK_HXD039B2_UART_ACLL(_func, ...) bsp_uart_##_func(__VA_ARGS__)
 #define AXK_HXD039B2_GPIO_ACLL(_func, ...) bsp_gpio_##_func(__VA_ARGS__)
-#define AXK_HXD039B2_DELAY_MS(x) delay_ms((x))
+#endif
+#endif
 
 /**
  * @brief HXD039B2 忙检测 GPIO 引脚。

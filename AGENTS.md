@@ -42,7 +42,7 @@ CMake 选项：
 
 | 选项 | 默认 | 说明 |
 |------|------|------|
-| `SCBB_USE_BSP` | ON | 使用内置 STM32F10x BSP，OFF 时需提供自定义 BSP |
+| `SCBB_USE_BSP` | OFF | 使用内置 STM32F10x BSP，ON 时包含内置 BSP |
 | `SCBB_CH224A` | OFF | USB-PD 驱动 (I2C) |
 | `SCBB_SHT3X` | OFF | 温湿度传感器 (I2C) |
 | `SCBB_WS2812` | OFF | LED 灯条驱动 (PWM+DMA) |
