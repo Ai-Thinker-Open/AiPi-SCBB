@@ -9,36 +9,14 @@ Peripheral driver library for **STM32F10x** (ARM Cortex-M3, HAL-based). Provides
 通过 CMake 配置构建：
 
 ```bash
-# 使用 menuconfig 配置模块（交互式菜单）
-cmake --build build --target menuconfig
-
-# 生成 CMake 配置文件
-cmake --build build --target genconfig
-
-# 生成 C 头文件
-cmake --build build --target genheader
-
-# 配置（使用默认或 menuconfig 生成的配置）
+# 配置
 cmake -B build
 
 # 构建
 cmake --build build
 ```
 
-或直接运行 Python 脚本：
-
-```bash
-# 运行交互式配置
-python scripts/menuconfig.py
-
-# 生成 CMake 配置
-python scripts/menuconfig.py --cmake --output scbb_config.cmake
-
-# 生成 C 头文件
-python scripts/menuconfig.py --header --output scbb_config.h
-```
-
-配置选项：
+配置选项（通过 `-D` 传递）：
 
 | 选项 | 默认 | 说明 |
 |------|------|------|
