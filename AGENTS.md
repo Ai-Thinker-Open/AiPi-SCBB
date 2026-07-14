@@ -6,39 +6,39 @@ Peripheral driver library for **STM32F10x** (ARM Cortex-M3, HAL-based). Provides
 
 ## CMake 构建
 
-通过 CMake Presets 配置构建：
+通过 CMake 配置构建：
 
 ```bash
-# 查看所有可用 presets
-cmake --list-presets
+# 使用 menuconfig 配置模块（交互式菜单）
+cmake --build build --target menuconfig
 
-# 使用 preset 配置（如只启用 HXD039B2）
-cmake --preset hxd039b2
+# 生成 CMake 配置文件
+cmake --build build --target genconfig
 
-# 启用所有模块
-cmake --preset all
+# 生成 C 头文件
+cmake --build build --target genheader
 
-# 使用自定义 BSP
-cmake --preset all-custom-bsp
+# 配置（使用默认或 menuconfig 生成的配置）
+cmake -B build
 
 # 构建
 cmake --build build
 ```
 
-可用 Presets：
+或直接运行 Python 脚本：
 
-| Preset | 说明 |
-|--------|------|
-| `default` | 默认配置，使用内置 BSP |
-| `custom-bsp` | 禁用内置 BSP，使用自定义实现 |
-| `ch224a` | 只启用 CH224A |
-| `sht3x` | 只启用 SHT3x |
-| `ws2812` | 只启用 WS2812 |
-| `hxd039b2` | 只启用 HXD039B2 |
-| `all` | 启用所有模块 |
-| `all-custom-bsp` | 启用所有模块，使用自定义 BSP |
+```bash
+# 运行交互式配置
+python scripts/menuconfig.py
 
-CMake 选项：
+# 生成 CMake 配置
+python scripts/menuconfig.py --cmake --output scbb_config.cmake
+
+# 生成 C 头文件
+python scripts/menuconfig.py --header --output scbb_config.h
+```
+
+配置选项：
 
 | 选项 | 默认 | 说明 |
 |------|------|------|

@@ -12,6 +12,11 @@ else()
     set(SCBB_IS_TOP_LEVEL OFF)
 endif()
 
+# Check for existing menuconfig
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/scbb_config.cmake")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/scbb_config.cmake")
+endif()
+
 # Module options (cache variables, can be overridden by parent project)
 option(SCBB_CH224A    "Enable CH224A USB-PD driver (I2C)"          OFF)
 option(SCBB_SHT3X     "Enable SHT3x temperature/humidity sensor (I2C)" OFF)
@@ -27,6 +32,36 @@ set(SCBB_BSP_UART_HEADER "stm32f10x_bsp_uart.h" CACHE STRING "Custom UART BSP he
 set(SCBB_BSP_SPI_HEADER "stm32f10x_bsp_spi.h" CACHE STRING "Custom SPI BSP header")
 set(SCBB_BSP_GPIO_HEADER "stm32f10x_bsp_gpio.h" CACHE STRING "Custom GPIO BSP header")
 set(SCBB_BSP_DELAY_HEADER "stm32f10x_delay.h" CACHE STRING "Custom delay BSP header")
+
+# Menuconfig target (only for top-level project)
+if(SCBB_IS_TOP_LEVEL)
+    add_custom_target(menuconfig
+        COMMAND ${CMAKE_COMMAND} -E echo "Running menuconfig..."
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/menuconfig.py
+                --config ${CMAKE_CURRENT_SOURCE_DIR}/scbb_config.json
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Configure SCBB modules and BSP"
+        VERBATIM
+    )
+
+    add_custom_target(genconfig
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/menuconfig.py
+                --config ${CMAKE_CURRENT_SOURCE_DIR}/scbb_config.json
+                --cmake --output ${CMAKE_CURRENT_SOURCE_DIR}/scbb_config.cmake
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Generating CMake config from menuconfig"
+        VERBATIM
+    )
+
+    add_custom_target(genheader
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/menuconfig.py
+                --config ${CMAKE_CURRENT_SOURCE_DIR}/scbb_config.json
+                --header --output ${CMAKE_CURRENT_SOURCE_DIR}/scbb_config.h
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Generating C header from menuconfig"
+        VERBATIM
+    )
+endif()
 
 # Collect enabled modules and their BSP requirements
 set(SCBB_SOURCES "")

@@ -1,0 +1,72 @@
+menu "AiPi-SCBB Configuration"
+
+    menu "Modules"
+        config SCBB_CH224A
+            bool "Enable CH224A USB-PD driver"
+            default n
+            help
+                Enable CH224A USB-PD sink controller driver (I2C).
+
+        config SCBB_SHT3X
+            bool "Enable SHT3x temperature/humidity sensor"
+            default n
+            help
+                Enable SHT3x digital temperature and humidity sensor driver (I2C).
+
+        config SCBB_WS2812
+            bool "Enable WS2812 LED strip driver"
+            default n
+            help
+                Enable WS2812 addressable RGB LED strip driver (PWM+DMA).
+
+        config SCBB_HXD039B2
+            bool "Enable HXD039B2 IR encoder/decoder"
+            default n
+            help
+                Enable HXD039B2 infrared encoder/decoder driver (UART).
+    endmenu
+
+    menu "BSP Configuration"
+        config SCBB_USE_BSP
+            bool "Use built-in STM32F10x BSP"
+            default n
+            help
+                Use the built-in STM32F10x Board Support Package.
+                If disabled, you must provide your own BSP implementation.
+
+        if !SCBB_USE_BSP
+            menu "Custom BSP Headers"
+                config SCBB_BSP_I2C_HEADER
+                    string "I2C BSP header file"
+                    default "stm32f10x_bsp_i2c.h"
+                    help
+                        Name of the I2C BSP header file to include.
+
+                config SCBB_BSP_UART_HEADER
+                    string "UART BSP header file"
+                    default "stm32f10x_bsp_uart.h"
+                    help
+                        Name of the UART BSP header file to include.
+
+                config SCBB_BSP_SPI_HEADER
+                    string "SPI BSP header file"
+                    default "stm32f10x_bsp_spi.h"
+                    help
+                        Name of the SPI BSP header file to include.
+
+                config SCBB_BSP_GPIO_HEADER
+                    string "GPIO BSP header file"
+                    default "stm32f10x_bsp_gpio.h"
+                    help
+                        Name of the GPIO BSP header file to include.
+
+                config SCBB_BSP_DELAY_HEADER
+                    string "Delay BSP header file"
+                    default "stm32f10x_delay.h"
+                    help
+                        Name of the delay BSP header file to include.
+            endmenu
+        endif
+    endmenu
+
+endmenu
