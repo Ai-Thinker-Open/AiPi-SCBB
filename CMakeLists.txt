@@ -126,11 +126,13 @@ else()
 endif()
 
 # Create library target
-if(SCBB_SOURCES)
-    add_library(aipi_scbb STATIC ${SCBB_SOURCES})
+add_library(aipi_scbb STATIC)
 
-    # ALIAS target for use in other CMake projects
-    add_library(AiPi::SCBB ALIAS aipi_scbb)
+# ALIAS target for use in other CMake projects
+add_library(AiPi::SCBB ALIAS aipi_scbb)
+
+if(SCBB_SOURCES)
+    target_sources(aipi_scbb PRIVATE ${SCBB_SOURCES})
 
     target_include_directories(aipi_scbb
         PUBLIC
@@ -166,12 +168,8 @@ if(SCBB_SOURCES)
     if(SCBB_HXD039B2)
         target_compile_definitions(aipi_scbb PUBLIC SCBB_HXD039B2_ENABLED=1)
     endif()
+endif()
 
-    if(SCBB_IS_TOP_LEVEL)
-        message(STATUS "AiPi-SCBB: Library target 'aipi_scbb' created")
-    endif()
-else()
-    if(SCBB_IS_TOP_LEVEL)
-        message(WARNING "AiPi-SCBB: No modules enabled, library not created")
-    endif()
+if(SCBB_IS_TOP_LEVEL)
+    message(STATUS "AiPi-SCBB: Library target 'aipi_scbb' created")
 endif()

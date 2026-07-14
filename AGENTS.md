@@ -55,49 +55,46 @@ BSP 说明：
 
 ## 外部工程引用
 
-### 方法 1: Git Submodule + add_subdirectory
+### 方法 1: 手动复制源码
 
-```bash
-# 在外部工程中添加子模块
-git submodule add git@github.com:Ai-Thinker-Open/AiPi-SCBB.git libs/scbb
+最简单，直接复制所需模块到你的工程：
+
+```
+your_project/
+├── CMakeLists.txt
+├── scbb/                    # 复制整个 SCBB 目录
+│   ├── HXD039B2/
+│   ├── SHT3x/
+│   └── ...
 ```
 
 外部工程 `CMakeLists.txt`：
 
 ```cmake
-# 添加 SCBB 子目录并配置模块
+# 配置模块
 set(SCBB_HXD039B2 ON CACHE BOOL "" FORCE)
 set(SCBB_SHT3X ON CACHE BOOL "" FORCE)
-set(SCBB_USE_BSP OFF CACHE BOOL "" FORCE)  # 使用自定义 BSP
-add_subdirectory(libs/scbb)
+set(SCBB_USE_BSP OFF CACHE BOOL "" FORCE)
+
+# 添加子目录
+add_subdirectory(scbb)
 
 # 链接到你的目标
 target_link_libraries(your_target PRIVATE AiPi::SCBB)
 ```
 
-### 方法 2: FetchContent
+### 方法 2: git clone
 
-```cmake
-include(FetchContent)
-
-FetchContent_Declare(
-    scbb
-    GIT_REPOSITORY git@github.com:Ai-Thinker-Open/AiPi-SCBB.git
-    GIT_TAG master
-)
-
-# 配置模块（FetchContent 调用前设置）
-set(SCBB_HXD039B2 ON)
-set(SCBB_USE_BSP OFF)
-
-FetchContent_MakeAvailable(scbb)
-
-target_link_libraries(your_target PRIVATE AiPi::SCBB)
+```bash
+git clone https://github.com/Ai-Thinker-Open/AiPi-SCBB.git libs/scbb
 ```
 
-### 方法 3: 手动复制源码
-
-直接复制所需模块目录（如 `HXD039B2/`、`SHT3x/`）到外部工程，在自己的 `CMakeLists.txt` 中编译。
+```cmake
+set(SCBB_HXD039B2 ON CACHE BOOL "" FORCE)
+set(SCBB_USE_BSP OFF CACHE BOOL "" FORCE)
+add_subdirectory(libs/scbb)
+target_link_libraries(your_target PRIVATE AiPi::SCBB)
+```
 
 ## Directory structure
 
