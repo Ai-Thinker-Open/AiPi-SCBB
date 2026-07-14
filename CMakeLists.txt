@@ -21,6 +21,13 @@ option(SCBB_HXD039B2  "Enable HXD039B2 IR encoder/decoder (UART)" OFF)
 # BSP options (set OFF if using custom BSP)
 option(SCBB_USE_BSP   "Use built-in STM32F10x BSP"                ON)
 
+# Custom BSP header names (for SCBB_USE_BSP=OFF)
+set(SCBB_BSP_I2C_HEADER "stm32f10x_bsp_i2c.h" CACHE STRING "Custom I2C BSP header")
+set(SCBB_BSP_UART_HEADER "stm32f10x_bsp_uart.h" CACHE STRING "Custom UART BSP header")
+set(SCBB_BSP_SPI_HEADER "stm32f10x_bsp_spi.h" CACHE STRING "Custom SPI BSP header")
+set(SCBB_BSP_GPIO_HEADER "stm32f10x_bsp_gpio.h" CACHE STRING "Custom GPIO BSP header")
+set(SCBB_BSP_DELAY_HEADER "stm32f10x_delay.h" CACHE STRING "Custom delay BSP header")
+
 # Collect enabled modules and their BSP requirements
 set(SCBB_SOURCES "")
 set(SCBB_HEADERS "")
@@ -153,6 +160,15 @@ if(SCBB_SOURCES)
         if(SCBB_NEED_DELAY)
             target_link_libraries(aipi_scbb PUBLIC aipi_bsp_delay)
         endif()
+    else()
+        # Export custom BSP header names for user-provided BSP
+        target_compile_definitions(aipi_scbb PRIVATE
+            SCBB_BSP_I2C_HEADER="${SCBB_BSP_I2C_HEADER}"
+            SCBB_BSP_UART_HEADER="${SCBB_BSP_UART_HEADER}"
+            SCBB_BSP_SPI_HEADER="${SCBB_BSP_SPI_HEADER}"
+            SCBB_BSP_GPIO_HEADER="${SCBB_BSP_GPIO_HEADER}"
+            SCBB_BSP_DELAY_HEADER="${SCBB_BSP_DELAY_HEADER}"
+        )
     endif()
 
     # Export compile definitions for enabled modules

@@ -12,18 +12,34 @@
 #define __AXK_HXD039B2_H__
 
 /**
- * @brief HXD039B2 UART 协议抽象层。
- *        如果使用其他 MCU，请包含对应的 UART 头文件。
+ * @brief UART BSP 头文件配置。
+ *        如果需要使用自定义 BSP，请在 CMake 中设置 SCBB_BSP_UART_HEADER。
  */
+#ifdef SCBB_BSP_UART_HEADER
+#include SCBB_BSP_UART_HEADER
+#else
 #if __has_include("stm32f10x_bsp_uart.h")
 #include "stm32f10x_bsp_uart.h"
+#else
+#error "Please include the appropriate UART header for HXD039B2 or set SCBB_BSP_UART_HEADER."
+#endif
+#endif
+
+/**
+ * @brief GPIO BSP 头文件配置。
+ *        如果需要使用自定义 BSP，请在 CMake 中设置 SCBB_BSP_GPIO_HEADER。
+ */
+#ifdef SCBB_BSP_GPIO_HEADER
+#include SCBB_BSP_GPIO_HEADER
+#else
+#if __has_include("stm32f10x_bsp_gpio.h")
+#include "stm32f10x_bsp_gpio.h"
+#endif
+#endif
+
 #define AXK_HXD039B2_UART_ACLL(_func, ...) bsp_uart_##_func(__VA_ARGS__)
 #define AXK_HXD039B2_GPIO_ACLL(_func, ...) bsp_gpio_##_func(__VA_ARGS__)
 #define AXK_HXD039B2_DELAY_MS(x) delay_ms((x))
-#pragma message "stm32f10x_bsp_uart.h included for HXD039B2"
-#else
-#error "Please include the appropriate UART header for HXD039B2."
-#endif
 
 /**
  * @brief HXD039B2 忙检测 GPIO 引脚。

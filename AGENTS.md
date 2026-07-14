@@ -47,11 +47,15 @@ CMake 选项：
 | `SCBB_SHT3X` | OFF | 温湿度传感器 (I2C) |
 | `SCBB_WS2812` | OFF | LED 灯条驱动 (PWM+DMA) |
 | `SCBB_HXD039B2` | OFF | 红外编解码 (UART) |
+| `SCBB_BSP_I2C_HEADER` | `stm32f10x_bsp_i2c.h` | 自定义 I2C BSP 头文件名 |
+| `SCBB_BSP_UART_HEADER` | `stm32f10x_bsp_uart.h` | 自定义 UART BSP 头文件名 |
+| `SCBB_BSP_GPIO_HEADER` | `stm32f10x_bsp_gpio.h` | 自定义 GPIO BSP 头文件名 |
+| `SCBB_BSP_DELAY_HEADER` | `stm32f10x_delay.h` | 自定义延时 BSP 头文件名 |
 
 BSP 说明：
 
 - `SCBB_USE_BSP=ON`：自动包含 `STM32F10x_bsp/` 下的 I2C、PWM+DMA、Delay
-- `SCBB_USE_BSP=OFF`：用户需自行提供 `bsp_i2c_*`、`bsp_pwm_dma_*`、`delay_ms` 等函数实现
+- `SCBB_USE_BSP=OFF`：用户需自行提供 BSP 实现，并通过 `SCBB_BSP_*_HEADER` 指定头文件名
 
 ## 外部工程引用
 
