@@ -1,49 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 624 72" width="624" height="72">
-  <rect width="624" height="72" rx="6" fill="#1e1e2e"/>
-  <!-- A -->
-  <rect x="8" y="12" width="8" height="48" fill="#cdd6f4"/>
-  <rect x="16" y="8" width="8" height="8" fill="#cdd6f4"/>
-  <rect x="24" y="12" width="8" height="48" fill="#cdd6f4"/>
-  <rect x="16" y="32" width="8" height="8" fill="#cdd6f4"/>
-  <!-- i -->
-  <rect x="40" y="24" width="8" height="36" fill="#cdd6f4"/>
-  <rect x="40" y="12" width="8" height="8" fill="#f38ba8"/>
-  <!-- P -->
-  <rect x="56" y="12" width="8" height="48" fill="#cdd6f4"/>
-  <rect x="64" y="8" width="8" height="8" fill="#cdd6f4"/>
-  <rect x="72" y="12" width="8" height="16" fill="#cdd6f4"/>
-  <rect x="64" y="28" width="8" height="8" fill="#cdd6f4"/>
-  <!-- i -->
-  <rect x="88" y="24" width="8" height="36" fill="#cdd6f4"/>
-  <rect x="88" y="12" width="8" height="8" fill="#f38ba8"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 100" width="480" height="100">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#89b4fa"/>
+      <stop offset="50%" stop-color="#cba6f7"/>
+      <stop offset="100%" stop-color="#f38ba8"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a6e3a1"/>
+      <stop offset="100%" stop-color="#94e2d5"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="100" rx="12" fill="#11111b"/>
+  <!-- AiPi -->
+  <text x="30" y="68" font-family="Consolas, 'Courier New', monospace" font-size="52" font-weight="bold" fill="url(#g1)" letter-spacing="2">AiPi</text>
   <!-- - -->
-  <rect x="108" y="32" width="16" height="8" fill="#6c7086"/>
-  <!-- S -->
-  <rect x="136" y="8" width="24" height="8" fill="#a6e3a1"/>
-  <rect x="136" y="16" width="8" height="8" fill="#a6e3a1"/>
-  <rect x="136" y="24" width="16" height="8" fill="#a6e3a1"/>
-  <rect x="152" y="32" width="8" height="8" fill="#a6e3a1"/>
-  <rect x="136" y="40" width="24" height="8" fill="#a6e3a1"/>
-  <!-- C -->
-  <rect x="168" y="8" width="24" height="8" fill="#a6e3a1"/>
-  <rect x="168" y="16" width="8" height="40" fill="#a6e3a1"/>
-  <rect x="168" y="48" width="24" height="8" fill="#a6e3a1"/>
-  <!-- C -->
-  <rect x="200" y="8" width="24" height="8" fill="#a6e3a1"/>
-  <rect x="200" y="16" width="8" height="40" fill="#a6e3a1"/>
-  <rect x="200" y="48" width="24" height="8" fill="#a6e3a1"/>
-  <!-- B -->
-  <rect x="232" y="12" width="8" height="48" fill="#a6e3a1"/>
-  <rect x="240" y="8" width="8" height="8" fill="#a6e3a1"/>
-  <rect x="248" y="12" width="8" height="16" fill="#a6e3a1"/>
-  <rect x="240" y="28" width="8" height="8" fill="#a6e3a1"/>
-  <rect x="248" y="36" width="8" height="24" fill="#a6e3a1"/>
-  <rect x="240" y="56" width="8" height="8" fill="#a6e3a1"/>
-  <!-- B -->
-  <rect x="264" y="12" width="8" height="48" fill="#a6e3a1"/>
-  <rect x="272" y="8" width="8" height="8" fill="#a6e3a1"/>
-  <rect x="280" y="12" width="8" height="16" fill="#a6e3a1"/>
-  <rect x="272" y="28" width="8" height="8" fill="#a6e3a1"/>
-  <rect x="280" y="36" width="8" height="24" fill="#a6e3a1"/>
-  <rect x="272" y="56" width="8" height="8" fill="#a6e3a1"/>
+  <text x="210" y="68" font-family="Consolas, 'Courier New', monospace" font-size="52" font-weight="bold" fill="#585b70" letter-spacing="2">-</text>
+  <!-- SCBB -->
+  <text x="238" y="68" font-family="Consolas, 'Courier New', monospace" font-size="52" font-weight="bold" fill="url(#g2)" letter-spacing="2">SCBB</text>
+  <!-- accent line -->
+  <rect x="30" y="82" width="420" height="2" rx="1" fill="url(#g1)" opacity="0.4"/>
 </svg>

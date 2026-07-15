@@ -34,16 +34,28 @@ pip install kconfiglib windows-curses
 
 ### 方法 1：menuconfig.py（推荐）
 
+运行图形化配置工具：
+
 ```bash
 python menuconfig.py
 ```
 
-操作流程：
+![menuconfig 主界面](docs/img/config_mod.png.jpg)
 
-1. 运行命令后进入图形化配置界面
-2. 用方向键选择模块，按 `Y` 勾选启用
-3. 按 `S` 保存配置
-4. 按 `Q` 退出
+**操作步骤：**
+
+1. 运行命令后进入 TUI 配置界面
+2. 用 `↑` `↓` 方向键选择模块
+3. 按 `Y` 启用模块（显示为 `[*]`）
+4. 展开模块可配置 BSP 头文件和函数前缀（如 `stm32f10x_bsp_i2c.h`、`bsp_i2c`）
+
+![模块启用状态](docs/img/enable_mod.png)
+
+5. 进入 `Output` 菜单设置 `scbb_config.h` 输出路径（默认：`config/scbb_config.h`）
+
+![输出路径配置](docs/img/scbb_config_path.jpg)
+
+6. 按 `S` 保存，再按 `Q` 退出
 
 保存后会自动生成 `scbb_config.h`，CMake 会自动读取该文件确定启用的模块，无需手动传递 `-D` 参数。
 

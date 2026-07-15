@@ -34,18 +34,30 @@ pip install kconfiglib windows-curses
 
 ### Option 1: menuconfig.py (Recommended)
 
+Run the graphical configuration tool:
+
 ```bash
 python menuconfig.py
 ```
 
-Steps:
+![menuconfig](docs/img/config_mod.png.jpg)
 
-1. Run the command to open the graphical configuration interface
-2. Use arrow keys to navigate, press `Y` to enable a module
-3. Press `S` to save configuration
-4. Press `Q` to exit
+**Steps:**
 
-This generates `scbb_config.h` automatically. CMake reads this file to determine which modules are enabled — no manual `-D` flags needed.
+1. Run the command to open the TUI configuration interface
+2. Use `↑` `↓` arrow keys to select a module
+3. Press `Y` to enable a module (marked as `[*]`)
+4. Expand a module to configure BSP header and prefix (e.g. `stm32f10x_bsp_i2c.h`, `bsp_i2c`)
+
+![module enabled](docs/img/enable_mod.png)
+
+5. Enter `Output` menu to set `scbb_config.h` output path (default: `config/scbb_config.h`)
+
+![output path](docs/img/scbb_config_path.jpg)
+
+6. Press `S` to save, then `Q` to exit
+
+The tool generates `scbb_config.h` automatically. CMake reads this file to determine which modules are enabled — no manual `-D` flags needed.
 
 ### Option 2: Manual Configuration
 
