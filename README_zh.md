@@ -41,7 +41,7 @@ python menuconfig.py
 ```
 
 <p align="center">
-  <img src="docs/img/config_mod.png.jpg" alt="menuconfig 主界面" width="70%">
+  <img src="docs/img/config_mod.jpg" alt="menuconfig 主界面" width="70%">
 </p>
 
 **操作步骤：**
