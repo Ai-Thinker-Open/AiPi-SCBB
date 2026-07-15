@@ -1,7 +1,6 @@
 # AiPi-SCBB
 
 [![English](https://img.shields.io/badge/English-README-blue)](README.md)
-[![中文](https://img.shields.io/badge/中文-README__zh-blue)](README_zh.md)
 
 Ai-Thinker STM32F10x 外设驱动库，为 I2C、PWM+DMA、UART 协议的外部器件提供统一的硬件抽象层。
 
