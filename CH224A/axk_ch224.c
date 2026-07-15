@@ -21,15 +21,15 @@
 int axk_ch224_init(void) {
   int ack;
   // 初始化I2C外设
-  AXK_CH224_I2C_ACLL(init);
+  AXK_CH224A_I2C_ACLL(init);
   // 发送起始信号
-  AXK_CH224_I2C_ACLL(start);
+  AXK_CH224A_I2C_ACLL(start);
   // 发送设备地址
-  AXK_CH224_I2C_ACLL(send_byte,
+  AXK_CH224A_I2C_ACLL(send_byte,
                      AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD); // 写操作
   // 等待ACK,检查 CH224 是否响应
-  ack = (int)AXK_CH224_I2C_ACLL(wait_ack);
-  AXK_CH224_I2C_ACLL(stop);
+  ack = (int)AXK_CH224A_I2C_ACLL(wait_ack);
+  AXK_CH224A_I2C_ACLL(stop);
   return ack;
 }
 /**
@@ -51,46 +51,46 @@ int axk_ch224_get_status(axk_ch224_reg_t onlyRreadReg) {
   }
 
   // 1. 发送起始信号
-  AXK_CH224_I2C_ACLL(start);
+  AXK_CH224A_I2C_ACLL(start);
 
   // 2. 发送设备地址+写命令 (0x22 << 1 | 0 = 0x44)
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD);
 
   // 3. 等待设备ACK，检查设备是否响应
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -1;                // 设备无响应
   }
 
   // 4. 发送要读取的寄存器地址 (如状态寄存器地址: 0x09)
-  AXK_CH224_I2C_ACLL(send_byte, onlyRreadReg);
+  AXK_CH224A_I2C_ACLL(send_byte, onlyRreadReg);
 
   // 5. 等待设备ACK
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -2;                // 发送寄存器地址失败
   }
 
   // 6. 发送重复起始信号 (Restart)
-  AXK_CH224_I2C_ACLL(start);
+  AXK_CH224A_I2C_ACLL(start);
 
   // 7. 发送设备地址+读命令 (0x22 << 1 | 1 = 0x45)
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_READ_CMD);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_READ_CMD);
 
   // 8. 等待设备ACK
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -3;                // 重复起始后设备无响应
   }
 
   // 9. 读取寄存器数据
-  status = AXK_CH224_I2C_ACLL(read_byte);
+  status = AXK_CH224A_I2C_ACLL(read_byte);
 
   // 10. 发送NACK，表示不再读取更多数据
-  AXK_CH224_I2C_ACLL(send_ack, AXK_CH224_NACK);
+  AXK_CH224A_I2C_ACLL(send_ack, AXK_CH224_NACK);
 
   // 11. 发送停止信号
-  AXK_CH224_I2C_ACLL(stop);
+  AXK_CH224A_I2C_ACLL(stop);
 
   // 返回读取到的状态寄存器值
   return (int)status;
@@ -102,37 +102,37 @@ int axk_ch224_get_status(axk_ch224_reg_t onlyRreadReg) {
  */
 int axk_ch224_set_vout(axk_ch224_vout_t value) {
   // 1. 发送起始信号
-  AXK_CH224_I2C_ACLL(start);
+  AXK_CH224A_I2C_ACLL(start);
 
   // 2. 发送设备地址+写命令 (0x22 << 1 | 0 = 0x44)
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD);
 
   // 3. 等待设备ACK，检查设备是否响应
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -1;                // 设备无响应
   }
 
   // 4. 发送要写入的寄存器地址
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_REG_VOUT);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_REG_VOUT);
 
   // 5. 等待设备ACK
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -2;                // 发送寄存器地址失败
   }
 
   // 6. 发送要写入的电压值
-  AXK_CH224_I2C_ACLL(send_byte, value);
+  AXK_CH224A_I2C_ACLL(send_byte, value);
 
   // 7. 等待设备ACK
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -3;                // 发送电压值失败
   }
 
   // 8. 发送停止信号
-  AXK_CH224_I2C_ACLL(stop);
+  AXK_CH224A_I2C_ACLL(stop);
 
   return 0; // 成功
 }
@@ -146,30 +146,30 @@ int axk_ch224_set_mode(axk_ch224_vout_t _mode) {
   if (_mode != AXK_CH224_VOUT_PPS && _mode != AXK_CH224_VOUT_AVS) {
     return -4; // 寄存器不是模式参数
   }
-  AXK_CH224_I2C_ACLL(start);
+  AXK_CH224A_I2C_ACLL(start);
   // 2. 发送设备地址+写命令 (0x22 << 1 | 0 = 0x44)
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD);
   // 3. 等待设备ACK，检查设备是否响应
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -1;                // 设备无响应
   }
   // 8. 配置电压寄存器
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_REG_VOUT);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_REG_VOUT);
   // 9. 等待设备ACK
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -2;                // 发送寄存器地址失败
   }
   // 10. 配置为模式
-  AXK_CH224_I2C_ACLL(send_byte, _mode);
+  AXK_CH224A_I2C_ACLL(send_byte, _mode);
   // 11. 等待设备ACK
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -3;                // 发送PPS模式失败
   }
   // 12. 发送停止信号
-  AXK_CH224_I2C_ACLL(stop);
+  AXK_CH224A_I2C_ACLL(stop);
   return 0; // 成功
 }
 /**
@@ -184,30 +184,30 @@ int axk_ch224_set_pps_vout(float PPS_VOUT) {
     return -10; // 电压值超出范围
   }
   // 1. 发送起始信号
-  AXK_CH224_I2C_ACLL(start);
+  AXK_CH224A_I2C_ACLL(start);
   // 2. 发送设备地址+写命令 (0x22 << 1 | 0 = 0x44)
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD);
   // 3. 等待设备ACK，检查设备是否响应
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -1;                // 设备无响应
   }
   // 4. 发送要写入的PPS电压值
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_REG_PPS);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_REG_PPS);
   // 5. 等待设备ACK
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -4;                // 发送PPS电压值失败
   }
   // 6. 发送PPS电压值
   unsigned char pps_vout = PPS_VOUT * 10.0;
-  AXK_CH224_I2C_ACLL(send_byte, pps_vout);
+  AXK_CH224A_I2C_ACLL(send_byte, pps_vout);
   // 7. 等待设备ACK
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -5;                // 发送PPS电压值失败
   }
-  AXK_CH224_I2C_ACLL(stop);
+  AXK_CH224A_I2C_ACLL(stop);
   return 0; // 成功
 }
 /**
@@ -227,41 +227,41 @@ int axk_ch224_set_avs_vout(float AVS_VOUT) {
   AVS_MSB = ((avs_vout >> 8) & 0XFF00) | 0X80;
   AVS_LSB = avs_vout & 0X00FF;
   // 2. 发送起始信号
-  AXK_CH224_I2C_ACLL(start);
+  AXK_CH224A_I2C_ACLL(start);
   // 3. 发送设备地址+写命令 (0x22 << 1 | 0 = 0x44)
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_I2C_ADDR << 1 | AXK_CH224_WRITE_CMD);
   // 4. 等待设备ACK，检查设备是否响应
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -1;                // 设备无响应
   }
 
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_REG_AVS_LSB);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_REG_AVS_LSB);
 
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -3;                // 发送AVS电压值LSB失败
   }
-  AXK_CH224_I2C_ACLL(send_byte, AVS_LSB);
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  AXK_CH224A_I2C_ACLL(send_byte, AVS_LSB);
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -3;                // 发送AVS电压值MSB失败
   }
   // 5. 发送要写入的AVS电压值
-  AXK_CH224_I2C_ACLL(send_byte, AXK_CH224_REG_AVS_MSB);
+  AXK_CH224A_I2C_ACLL(send_byte, AXK_CH224_REG_AVS_MSB);
   // 6. 等待设备ACK
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -2;                // 发送AVS电压值LSB失败
   }
-  AXK_CH224_I2C_ACLL(send_byte, AVS_MSB);
+  AXK_CH224A_I2C_ACLL(send_byte, AVS_MSB);
 
-  if (AXK_CH224_I2C_ACLL(wait_ack)) {
-    AXK_CH224_I2C_ACLL(stop); // 发送停止信号
+  if (AXK_CH224A_I2C_ACLL(wait_ack)) {
+    AXK_CH224A_I2C_ACLL(stop); // 发送停止信号
     return -4;                // 发送AVS
                               // 电压值LSB失败
   }
   // 13. 发送停止信号
-  AXK_CH224_I2C_ACLL(stop);
+  AXK_CH224A_I2C_ACLL(stop);
   return 0; // 成功
 }

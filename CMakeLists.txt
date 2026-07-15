@@ -12,63 +12,95 @@ else()
     set(SCBB_IS_TOP_LEVEL OFF)
 endif()
 
-# Module options (cache variables, can be overridden by parent project)
-option(SCBB_CH224A    "Enable CH224A USB-PD driver (I2C)"          OFF)
-option(SCBB_SHT3X     "Enable SHT3x temperature/humidity sensor (I2C)" OFF)
-option(SCBB_WS2812    "Enable WS2812 LED strip driver (PWM+DMA)"  OFF)
-option(SCBB_HXD039B2  "Enable HXD039B2 IR encoder/decoder (UART)" OFF)
+# ─── Config header path ────────────────────────────────────────────
+set(SCBB_CONFIG_HEADER_PATH   "scbb_config.h"        CACHE STRING "Path to scbb_config.h")
 
-# BSP options (set ON if using built-in BSP)
-option(SCBB_USE_BSP   "Use built-in STM32F10x BSP"                OFF)
+# ─── Read module enables from scbb_config.h ────────────────────────
+# Parse SCBB_<MODULE>_ENABLED=1 defines from the generated config header
+# so that menuconfig drives the build — no manual -D flags needed.
+macro(scbb_read_config)
+    set(_config_path "${CMAKE_CURRENT_SOURCE_DIR}/${SCBB_CONFIG_HEADER_PATH}")
+    if(EXISTS "${_config_path}")
+        file(READ "${_config_path}" _config_content)
 
-# Custom BSP header names (for SCBB_USE_BSP=OFF)
-set(SCBB_BSP_I2C_HEADER "stm32f10x_bsp_i2c.h" CACHE STRING "Custom I2C BSP header")
-set(SCBB_BSP_UART_HEADER "stm32f10x_bsp_uart.h" CACHE STRING "Custom UART BSP header")
-set(SCBB_BSP_SPI_HEADER "stm32f10x_bsp_spi.h" CACHE STRING "Custom SPI BSP header")
-set(SCBB_BSP_GPIO_HEADER "stm32f10x_bsp_gpio.h" CACHE STRING "Custom GPIO BSP header")
-set(SCBB_BSP_DELAY_HEADER "stm32f10x_delay.h" CACHE STRING "Custom delay BSP header")
+        set(_all_modules CH224A SHT3X WS2812 HXD039B2)
+        foreach(_mod ${_all_modules})
+            if(_config_content MATCHES "#define SCBB_${_mod}_ENABLED")
+                set(SCBB_${_mod}_ENABLED ON)
+            else()
+                set(SCBB_${_mod}_ENABLED OFF)
+            endif()
+        endforeach()
 
-# Collect enabled modules and their BSP requirements
+        # Read BSP option
+        if(_config_content MATCHES "#define SCBB_USE_BSP")
+            set(SCBB_USE_BSP ON)
+        else()
+            set(SCBB_USE_BSP OFF)
+        endif()
+    else()
+        if(SCBB_IS_TOP_LEVEL)
+            message(STATUS "AiPi-SCBB: ${SCBB_CONFIG_HEADER_PATH} not found, all modules OFF")
+        endif()
+        set(SCBB_CH224A_ENABLED OFF)
+        set(SCBB_SHT3X_ENABLED OFF)
+        set(SCBB_WS2812_ENABLED OFF)
+        set(SCBB_HXD039B2_ENABLED OFF)
+        set(SCBB_USE_BSP OFF)
+    endif()
+endmacro()
+
+scbb_read_config()
+
+# ─── Per-module BSP header options ─────────────────────────────────
+# CH224A
+set(SCBB_CH224A_I2C_HEADER    "stm32f10x_bsp_i2c.h"  CACHE STRING "CH224A I2C BSP header")
+set(SCBB_CH224A_I2C_PREFIX    "bsp_i2c"              CACHE STRING "CH224A I2C BSP function prefix")
+set(SCBB_CH224A_DELAY_HEADER  "stm32f10x_delay.h"    CACHE STRING "CH224A Delay BSP header")
+set(SCBB_CH224A_DELAY_PREFIX  "delay"                CACHE STRING "CH224A Delay BSP function prefix")
+
+# SHT3x
+set(SCBB_SHT3X_I2C_HEADER     "stm32f10x_bsp_i2c.h"  CACHE STRING "SHT3x I2C BSP header")
+set(SCBB_SHT3X_I2C_PREFIX     "bsp_i2c"              CACHE STRING "SHT3x I2C BSP function prefix")
+set(SCBB_SHT3X_DELAY_HEADER   "stm32f10x_delay.h"    CACHE STRING "SHT3x Delay BSP header")
+set(SCBB_SHT3X_DELAY_PREFIX   "delay"                CACHE STRING "SHT3x Delay BSP function prefix")
+
+# WS2812
+set(SCBB_WS2812_PWM_DMA_HEADER  "stm32f10x_pwm_dma.h"  CACHE STRING "WS2812 PWM DMA BSP header")
+set(SCBB_WS2812_PWM_DMA_PREFIX  "bsp_pwm_dma"          CACHE STRING "WS2812 PWM DMA BSP function prefix")
+
+# HXD039B2
+set(SCBB_HXD039B2_UART_HEADER   "stm32f10x_bsp_uart.h" CACHE STRING "HXD039B2 UART BSP header")
+set(SCBB_HXD039B2_UART_PREFIX   "bsp_uart"             CACHE STRING "HXD039B2 UART BSP function prefix")
+set(SCBB_HXD039B2_GPIO_HEADER   "stm32f10x_bsp_gpio.h" CACHE STRING "HXD039B2 GPIO BSP header")
+set(SCBB_HXD039B2_GPIO_PREFIX   "bsp_gpio"             CACHE STRING "HXD039B2 GPIO BSP function prefix")
+set(SCBB_HXD039B2_DELAY_HEADER  "stm32f10x_delay.h"    CACHE STRING "HXD039B2 Delay BSP header")
+set(SCBB_HXD039B2_DELAY_PREFIX  "delay"                CACHE STRING "HXD039B2 Delay BSP function prefix")
+
+# ─── Collect enabled modules ───────────────────────────────────────
 set(SCBB_SOURCES "")
 set(SCBB_HEADERS "")
-set(SCBB_NEED_I2C    OFF)
-set(SCBB_NEED_PWM_DMA OFF)
-set(SCBB_NEED_UART   OFF)
-set(SCBB_NEED_GPIO   OFF)
-set(SCBB_NEED_DELAY  OFF)
 
 # CH224A module
-if(SCBB_CH224A)
-    list(APPEND SCBB_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/CH224A/axk_ch224.c
-    )
-    list(APPEND SCBB_HEADERS
-        ${CMAKE_CURRENT_SOURCE_DIR}/CH224A/axk_ch224.h
-    )
-    set(SCBB_NEED_I2C ON)
-    set(SCBB_NEED_DELAY ON)
+if(SCBB_CH224A_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/CH224A/axk_ch224.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/CH224A/axk_ch224.h)
     if(SCBB_IS_TOP_LEVEL)
         message(STATUS "AiPi-SCBB: CH224A enabled (I2C)")
     endif()
 endif()
 
 # SHT3x module
-if(SCBB_SHT3X)
-    list(APPEND SCBB_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/SHT3x/axk_sht3x.c
-    )
-    list(APPEND SCBB_HEADERS
-        ${CMAKE_CURRENT_SOURCE_DIR}/SHT3x/axk_sht3x.h
-    )
-    set(SCBB_NEED_I2C ON)
-    set(SCBB_NEED_DELAY ON)
+if(SCBB_SHT3X_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/SHT3x/axk_sht3x.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/SHT3x/axk_sht3x.h)
     if(SCBB_IS_TOP_LEVEL)
         message(STATUS "AiPi-SCBB: SHT3x enabled (I2C)")
     endif()
 endif()
 
 # WS2812 module
-if(SCBB_WS2812)
+if(SCBB_WS2812_ENABLED)
     list(APPEND SCBB_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/WS2812/axk_ws2812.c
         ${CMAKE_CURRENT_SOURCE_DIR}/WS2812/color_mode.c
@@ -77,116 +109,139 @@ if(SCBB_WS2812)
         ${CMAKE_CURRENT_SOURCE_DIR}/WS2812/axk_ws2812.h
         ${CMAKE_CURRENT_SOURCE_DIR}/WS2812/color_mode.h
     )
-    set(SCBB_NEED_PWM_DMA ON)
     if(SCBB_IS_TOP_LEVEL)
         message(STATUS "AiPi-SCBB: WS2812 enabled (PWM+DMA)")
     endif()
 endif()
 
 # HXD039B2 module
-if(SCBB_HXD039B2)
-    list(APPEND SCBB_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/HXD039B2/axk_hxd039b2.c
-    )
-    list(APPEND SCBB_HEADERS
-        ${CMAKE_CURRENT_SOURCE_DIR}/HXD039B2/axk_hxd039b2.h
-    )
-    set(SCBB_NEED_UART ON)
-    set(SCBB_NEED_GPIO ON)
-    set(SCBB_NEED_DELAY ON)
+if(SCBB_HXD039B2_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/HXD039B2/axk_hxd039b2.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/HXD039B2/axk_hxd039b2.h)
     if(SCBB_IS_TOP_LEVEL)
         message(STATUS "AiPi-SCBB: HXD039B2 enabled (UART+GPIO)")
     endif()
 endif()
 
-# Include built-in BSP if enabled
+# ─── Include built-in BSP if enabled ──────────────────────────────
 if(SCBB_USE_BSP)
-    if(SCBB_NEED_I2C)
-        add_subdirectory(STM32F10x_bsp/i2c)
+    # Collect BSP dependencies from enabled modules
+    set(SCBB_BSP_DIRS "")
+    if(SCBB_CH224A_ENABLED OR SCBB_SHT3X_ENABLED OR SCBB_HXD039B2_ENABLED)
+        list(APPEND SCBB_BSP_DIRS i2c delay)
+    endif()
+    if(SCBB_WS2812_ENABLED)
+        list(APPEND SCBB_BSP_DIRS pwm_dma)
+    endif()
+    if(SCBB_HXD039B2_ENABLED)
+        list(APPEND SCBB_BSP_DIRS uart gpio)
     endif()
 
-    if(SCBB_NEED_PWM_DMA)
-        add_subdirectory(STM32F10x_bsp/pwm_dma)
-    endif()
-
-    if(SCBB_NEED_DELAY)
-        add_subdirectory(STM32F10x_bsp/delay)
-    endif()
-
-    if(SCBB_NEED_UART)
-        # TODO: Add UART BSP when available
-        if(SCBB_IS_TOP_LEVEL)
-            message(STATUS "AiPi-SCBB: UART BSP required (not yet implemented)")
+    foreach(dir ${SCBB_BSP_DIRS})
+        if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/STM32F10x_bsp/${dir})
+            add_subdirectory(STM32F10x_bsp/${dir})
+        elseif(SCBB_IS_TOP_LEVEL)
+            message(STATUS "AiPi-SCBB: BSP dir '${dir}' not found (skipped)")
         endif()
-    endif()
-
-    if(SCBB_NEED_GPIO)
-        # TODO: Add GPIO BSP when available
-        if(SCBB_IS_TOP_LEVEL)
-            message(STATUS "AiPi-SCBB: GPIO BSP required (not yet implemented)")
-        endif()
-    endif()
-else()
-    if(SCBB_IS_TOP_LEVEL)
-        message(STATUS "AiPi-SCBB: Built-in BSP disabled, using custom BSP")
-    endif()
+    endforeach()
 endif()
 
-# Create library target (INTERFACE when no sources, STATIC otherwise)
+# ─── Create library target ────────────────────────────────────────
 if(SCBB_SOURCES)
     add_library(aipi_scbb STATIC)
 else()
     add_library(aipi_scbb INTERFACE)
 endif()
 
-# ALIAS target for use in other CMake projects
 add_library(AiPi::SCBB ALIAS aipi_scbb)
 
 if(SCBB_SOURCES)
     target_sources(aipi_scbb PRIVATE ${SCBB_SOURCES})
 
+    # Get directory containing scbb_config.h for include path
+    get_filename_component(SCBB_CONFIG_DIR "${SCBB_CONFIG_HEADER_PATH}" DIRECTORY)
+    if(SCBB_CONFIG_DIR STREQUAL "")
+        set(SCBB_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+    else()
+        set(SCBB_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${SCBB_CONFIG_DIR}")
+    endif()
+
     target_include_directories(aipi_scbb
         PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+            $<BUILD_INTERFACE:${SCBB_CONFIG_DIR}>
             $<INSTALL_INTERFACE:include>
     )
 
-    # Link BSP libraries (only if using built-in BSP)
-    if(SCBB_USE_BSP)
-        if(SCBB_NEED_I2C)
-            target_link_libraries(aipi_scbb PUBLIC aipi_bsp_i2c)
-        endif()
-
-        if(SCBB_NEED_PWM_DMA)
-            target_link_libraries(aipi_scbb PUBLIC aipi_bsp_pwm_dma)
-        endif()
-
-        if(SCBB_NEED_DELAY)
-            target_link_libraries(aipi_scbb PUBLIC aipi_bsp_delay)
-        endif()
-    else()
-        # Export custom BSP header names for user-provided BSP
-        target_compile_definitions(aipi_scbb PRIVATE
-            SCBB_BSP_I2C_HEADER="${SCBB_BSP_I2C_HEADER}"
-            SCBB_BSP_UART_HEADER="${SCBB_BSP_UART_HEADER}"
-            SCBB_BSP_SPI_HEADER="${SCBB_BSP_SPI_HEADER}"
-            SCBB_BSP_GPIO_HEADER="${SCBB_BSP_GPIO_HEADER}"
-            SCBB_BSP_DELAY_HEADER="${SCBB_BSP_DELAY_HEADER}"
-        )
-    endif()
-
-    # Export compile definitions for enabled modules
-    if(SCBB_CH224A)
+    # Export module enable defines
+    if(SCBB_CH224A_ENABLED)
         target_compile_definitions(aipi_scbb PUBLIC SCBB_CH224A_ENABLED=1)
     endif()
-    if(SCBB_SHT3X)
+    if(SCBB_SHT3X_ENABLED)
         target_compile_definitions(aipi_scbb PUBLIC SCBB_SHT3X_ENABLED=1)
     endif()
-    if(SCBB_WS2812)
+    if(SCBB_WS2812_ENABLED)
         target_compile_definitions(aipi_scbb PUBLIC SCBB_WS2812_ENABLED=1)
     endif()
-    if(SCBB_HXD039B2)
+    if(SCBB_HXD039B2_ENABLED)
         target_compile_definitions(aipi_scbb PUBLIC SCBB_HXD039B2_ENABLED=1)
+    endif()
+
+    # Link built-in BSP libraries
+    if(SCBB_USE_BSP)
+        if(SCBB_CH224A_ENABLED OR SCBB_SHT3X_ENABLED OR SCBB_HXD039B2_ENABLED)
+            if(TARGET aipi_bsp_i2c)
+                target_link_libraries(aipi_scbb PUBLIC aipi_bsp_i2c)
+            endif()
+            if(TARGET aipi_bsp_delay)
+                target_link_libraries(aipi_scbb PUBLIC aipi_bsp_delay)
+            endif()
+        endif()
+        if(SCBB_WS2812_ENABLED AND TARGET aipi_bsp_pwm_dma)
+            target_link_libraries(aipi_scbb PUBLIC aipi_bsp_pwm_dma)
+        endif()
+        if(SCBB_HXD039B2_ENABLED)
+            if(TARGET aipi_bsp_uart)
+                target_link_libraries(aipi_scbb PUBLIC aipi_bsp_uart)
+            endif()
+            if(TARGET aipi_bsp_gpio)
+                target_link_libraries(aipi_scbb PUBLIC aipi_bsp_gpio)
+            endif()
+        endif()
+    else()
+        # Export per-module BSP headers and prefixes as compile definitions
+        if(SCBB_CH224A_ENABLED)
+            target_compile_definitions(aipi_scbb PUBLIC
+                "SCBB_CH224A_I2C_HEADER=\"${SCBB_CH224A_I2C_HEADER}\""
+                "SCBB_CH224A_I2C_PREFIX=${SCBB_CH224A_I2C_PREFIX}"
+                "SCBB_CH224A_DELAY_HEADER=\"${SCBB_CH224A_DELAY_HEADER}\""
+                "SCBB_CH224A_DELAY_PREFIX=${SCBB_CH224A_DELAY_PREFIX}"
+            )
+        endif()
+        if(SCBB_SHT3X_ENABLED)
+            target_compile_definitions(aipi_scbb PUBLIC
+                "SCBB_SHT3X_I2C_HEADER=\"${SCBB_SHT3X_I2C_HEADER}\""
+                "SCBB_SHT3X_I2C_PREFIX=${SCBB_SHT3X_I2C_PREFIX}"
+                "SCBB_SHT3X_DELAY_HEADER=\"${SCBB_SHT3X_DELAY_HEADER}\""
+                "SCBB_SHT3X_DELAY_PREFIX=${SCBB_SHT3X_DELAY_PREFIX}"
+            )
+        endif()
+        if(SCBB_WS2812_ENABLED)
+            target_compile_definitions(aipi_scbb PUBLIC
+                "SCBB_WS2812_PWM_DMA_HEADER=\"${SCBB_WS2812_PWM_DMA_HEADER}\""
+                "SCBB_WS2812_PWM_DMA_PREFIX=${SCBB_WS2812_PWM_DMA_PREFIX}"
+            )
+        endif()
+        if(SCBB_HXD039B2_ENABLED)
+            target_compile_definitions(aipi_scbb PUBLIC
+                "SCBB_HXD039B2_UART_HEADER=\"${SCBB_HXD039B2_UART_HEADER}\""
+                "SCBB_HXD039B2_UART_PREFIX=${SCBB_HXD039B2_UART_PREFIX}"
+                "SCBB_HXD039B2_GPIO_HEADER=\"${SCBB_HXD039B2_GPIO_HEADER}\""
+                "SCBB_HXD039B2_GPIO_PREFIX=${SCBB_HXD039B2_GPIO_PREFIX}"
+                "SCBB_HXD039B2_DELAY_HEADER=\"${SCBB_HXD039B2_DELAY_HEADER}\""
+                "SCBB_HXD039B2_DELAY_PREFIX=${SCBB_HXD039B2_DELAY_PREFIX}"
+            )
+        endif()
     endif()
 endif()
 

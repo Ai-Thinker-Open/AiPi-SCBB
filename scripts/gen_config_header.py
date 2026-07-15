@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
-"""Convert .config (kconfiglib output) to scbb_config.h"""
+"""Convert .config (kconfiglib output) to scbb_config.h.
 
+Dynamically discovers all enabled modules and their BSP configurations
+from the .config file. No hardcoded module list needed.
+"""
+
+import re
 import sys
 from pathlib import Path
+
 
 def parse_config(config_path):
     result = {}
@@ -13,8 +19,50 @@ def parse_config(config_path):
                 continue
             if "=" in line:
                 key, val = line.split("=", 1)
-                result[key.strip()] = val.strip()
+                key = key.strip()
+                val = val.strip()
+                if key.startswith("CONFIG_"):
+                    key = key[7:]
+                if len(val) >= 2 and val[0] == '"' and val[-1] == '"':
+                    val = val[1:-1]
+                result[key] = val
     return result
+
+
+def discover_modules(config):
+    """Find all enabled modules and their BSP configs from .config."""
+    modules = {}
+    for key, val in config.items():
+        if key.endswith("_ENABLED") and val == "y":
+            # Strip SCBB_ prefix and _ENABLED suffix to get module name
+            module = key
+            if module.startswith("SCBB_"):
+                module = module[5:]  # Remove SCBB_
+            module = module.replace("_ENABLED", "")
+            modules[module] = {}
+    return modules
+
+
+def discover_bsp_configs(config, module):
+    """Find all HEADER and PREFIX configs for a module."""
+    prefix = f"SCBB_{module}_"
+    bsp_types = {}
+    for key, val in config.items():
+        if not key.startswith(prefix) or key.endswith("_ENABLED"):
+            continue
+        suffix = key[len(prefix):]
+        if "_HEADER" in suffix:
+            bsp_type = suffix.replace("_HEADER", "")
+            if bsp_type not in bsp_types:
+                bsp_types[bsp_type] = {"header": "", "prefix": ""}
+            bsp_types[bsp_type]["header"] = val
+        elif "_PREFIX" in suffix:
+            bsp_type = suffix.replace("_PREFIX", "")
+            if bsp_type not in bsp_types:
+                bsp_types[bsp_type] = {"header": "", "prefix": ""}
+            bsp_types[bsp_type]["prefix"] = val
+    return bsp_types
+
 
 def generate_header(config, output_path):
     lines = [
@@ -28,38 +76,53 @@ def generate_header(config, output_path):
         "",
     ]
 
-    # Module enables
-    module_keys = [
-        "SCBB_CH224A_ENABLED",
-        "SCBB_SHT3X_ENABLED",
-        "SCBB_WS2812_ENABLED",
-        "SCBB_HXD039B2_ENABLED",
-    ]
+    modules = discover_modules(config)
+
+    # ── Module enables ──────────────────────────────────────────────
     lines.append("/* Module enables */")
-    for key in module_keys:
-        if config.get(key) == "y":
-            lines.append(f"#define {key} 1")
+    for module in sorted(modules.keys()):
+        lines.append(f"#define SCBB_{module}_ENABLED 1")
     lines.append("")
 
-    # BSP headers
-    bsp_keys = [
-        "SCBB_BSP_I2C_HEADER",
-        "SCBB_BSP_GPIO_HEADER",
-        "SCBB_BSP_DELAY_HEADER",
-        "SCBB_BSP_UART_HEADER",
-        "SCBB_BSP_PWM_DMA_HEADER",
-    ]
-    lines.append("/* BSP headers */")
-    for key in bsp_keys:
-        val = config.get(key, "")
-        if val and val != '""':
-            lines.append(f'#define {key} {val}')
-    lines.append("")
+    # ── Per-module BSP configs ─────────────────────────────────────
+    for module in sorted(modules.keys()):
+        bsp_configs = discover_bsp_configs(config, module)
+        if not bsp_configs:
+            continue
+
+        lines.append(f"/* {module} BSP configuration */")
+        for bsp_type in sorted(bsp_configs.keys()):
+            info = bsp_configs[bsp_type]
+            header = info["header"]
+            prefix = info["prefix"]
+
+            # Generate HEADER define
+            if header:
+                define_name = f"SCBB_{module}_{bsp_type}_HEADER"
+                lines.append(f'#define {define_name} "{header}"')
+
+            # Generate ACLL macro (I2C/UART/GPIO/PWM_DMA types)
+            if bsp_type != "DELAY":
+                macro_name = f"AXK_{module}_{bsp_type}_ACLL"
+                lines.append(
+                    f"#define {macro_name}(_func, ...) "
+                    + prefix + "##_##_func(__VA_ARGS__)"
+                )
+
+            # Generate DELAY macro
+            if bsp_type == "DELAY":
+                macro_name = f"AXK_{module}_DELAY_MS"
+                lines.append(
+                    f"#define {macro_name}(x) " + prefix + "_ms(x)"
+                )
+
+        lines.append("")
 
     lines.append("#endif /* SCBB_CONFIG_H */")
     lines.append("")
 
     Path(output_path).write_text("\n".join(lines), encoding="utf-8")
+
 
 def main():
     config_path = sys.argv[1] if len(sys.argv) > 1 else ".config"
@@ -72,6 +135,7 @@ def main():
     config = parse_config(config_path)
     generate_header(config, output_path)
     print(f"Generated {output_path}")
+
 
 if __name__ == "__main__":
     main()

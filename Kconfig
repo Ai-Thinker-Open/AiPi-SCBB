@@ -1,66 +1,98 @@
-menu "AiPi-SCBB Configuration"
+mainmenu "Ai-Thinker AiPi-SCBB"
 
-    menu "Modules"
-        config SCBB_CH224A_ENABLED
-            bool "Enable CH224A USB-PD driver"
-            default n
-            help
-                Enable CH224A USB-PD sink controller driver (I2C).
+config SCBB_CH224A_ENABLED
+    bool "Enable CH224A"
+    prompt "Enable CH224A I2C USB-PD driver"
+    default n
+    help 
+        Enable CH224A I2C USB-PD driver.
 
-        config SCBB_SHT3X_ENABLED
-            bool "Enable SHT3x temperature/humidity sensor"
-            default n
-            help
-                Enable SHT3x digital temperature and humidity sensor driver (I2C).
+if SCBB_CH224A_ENABLED
+    config SCBB_CH224A_I2C_HEADER
+        string "CH224A - I2C BSP header"
+        default "stm32f10x_bsp_i2c.h"
 
-        config SCBB_WS2812_ENABLED
-            bool "Enable WS2812 LED strip driver"
-            default n
-            help
-                Enable WS2812 addressable RGB LED strip driver (PWM+DMA).
+    config SCBB_CH224A_I2C_PREFIX
+        string "CH224A - I2C BSP function prefix"
+        default "bsp_i2c"
 
-        config SCBB_HXD039B2_ENABLED
-            bool "Enable HXD039B2 IR encoder/decoder"
-            default n
-            help
-                Enable HXD039B2 infrared encoder/decoder driver (UART).
-    endmenu
+    config SCBB_CH224A_DELAY_HEADER
+        string "CH224A - Delay BSP header"
+        default "stm32f10x_delay.h"
 
-    menu "BSP Headers"
-        config SCBB_BSP_I2C_HEADER
-            string "I2C BSP header file"
-            default ""
-            help
-                I2C BSP header filename (for CH224A, SHT3x).
-                Leave empty to use default.
+    config SCBB_CH224A_DELAY_PREFIX
+        string "CH224A - Delay BSP function prefix"
+        default "delay"
+endif
 
-        config SCBB_BSP_GPIO_HEADER
-            string "GPIO BSP header file"
-            default ""
-            help
-                GPIO BSP header filename (for HXD039B2).
-                Leave empty to use default.
+config SCBB_SHT3X_ENABLED
+    bool "Enable SHT3x [I2C temperature/humidity sensor]"
+    default n
 
-        config SCBB_BSP_DELAY_HEADER
-            string "Delay BSP header file"
-            default ""
-            help
-                Delay BSP header filename.
-                Leave empty to use default.
+if SCBB_SHT3X_ENABLED
+    config SCBB_SHT3X_I2C_HEADER
+        string "SHT3x - I2C BSP header"
+        default "stm32f10x_bsp_i2c.h"
 
-        config SCBB_BSP_UART_HEADER
-            string "UART BSP header file"
-            default ""
-            help
-                UART BSP header filename (for HXD039B2).
-                Leave empty to use default.
+    config SCBB_SHT3X_I2C_PREFIX
+        string "SHT3x - I2C BSP function prefix"
+        default "bsp_i2c"
 
-        config SCBB_BSP_PWM_DMA_HEADER
-            string "PWM DMA BSP header file"
-            default ""
-            help
-                PWM DMA BSP header filename (for WS2812).
-                Leave empty to use default.
-    endmenu
+    config SCBB_SHT3X_DELAY_HEADER
+        string "SHT3x - Delay BSP header"
+        default "stm32f10x_delay.h"
 
+    config SCBB_SHT3X_DELAY_PREFIX
+        string "SHT3x - Delay BSP function prefix"
+        default "delay"
+endif
+
+config SCBB_WS2812_ENABLED
+    bool "Enable WS2812 [PWM+DMA LED strip driver]"
+    default n
+
+if SCBB_WS2812_ENABLED
+    config SCBB_WS2812_PWM_DMA_HEADER
+        string "WS2812 - PWM DMA BSP header"
+        default "stm32f10x_pwm_dma.h"
+
+    config SCBB_WS2812_PWM_DMA_PREFIX
+        string "WS2812 - PWM DMA BSP function prefix"
+        default "bsp_pwm_dma"
+endif
+
+config SCBB_HXD039B2_ENABLED
+    bool "Enable HXD039B2 [UART IR encoder/decoder]"
+    default n
+
+if SCBB_HXD039B2_ENABLED
+    config SCBB_HXD039B2_UART_HEADER
+        string "HXD039B2 - UART BSP header"
+        default "stm32f10x_bsp_uart.h"
+
+    config SCBB_HXD039B2_UART_PREFIX
+        string "HXD039B2 - UART BSP function prefix"
+        default "bsp_uart"
+
+    config SCBB_HXD039B2_GPIO_HEADER
+        string "HXD039B2 - GPIO BSP header"
+        default "stm32f10x_bsp_gpio.h"
+
+    config SCBB_HXD039B2_GPIO_PREFIX
+        string "HXD039B2 - GPIO BSP function prefix"
+        default "bsp_gpio"
+
+    config SCBB_HXD039B2_DELAY_HEADER
+        string "HXD039B2 - Delay BSP header"
+        default "stm32f10x_delay.h"
+
+    config SCBB_HXD039B2_DELAY_PREFIX
+        string "HXD039B2 - Delay BSP function prefix"
+        default "delay"
+endif
+
+menu "Output"
+    config SCBB_CONFIG_HEADER_PATH
+        string "scbb_config.h output path"
+        default "scbb_config.h"
 endmenu

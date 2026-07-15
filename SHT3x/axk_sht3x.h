@@ -13,20 +13,15 @@
 
 #include "scbb_config.h"
 
-/**
- * @brief I2C BSP 头文件配置。
- *        优先使用 scbb_config.h 中的 SCBB_BSP_I2C_HEADER 定义。
- */
-#ifdef SCBB_BSP_I2C_HEADER
-#include SCBB_BSP_I2C_HEADER
-#define AXK_SHT3X_I2C_ACLL(_func, ...) bsp_i2c_##_func(__VA_ARGS__)
-#define AXK_SHT3X_DELAY_MS(x) delay_ms(x)
-#elif __has_include("stm32f10x_bsp_i2c.h")
-#include "stm32f10x_bsp_i2c.h"
-#define AXK_SHT3X_I2C_ACLL(_func, ...) bsp_i2c_##_func(__VA_ARGS__)
-#define AXK_SHT3X_DELAY_MS(x) delay_ms(x)
-#else
-#error "Please include the appropriate I2C header for SHT3x or set SCBB_BSP_I2C_HEADER in scbb_config.h."
+#ifdef SCBB_SHT3X_ENABLED
+
+/* BSP headers and ACLL macros are defined in scbb_config.h */
+#ifdef SCBB_SHT3X_I2C_HEADER
+#include SCBB_SHT3X_I2C_HEADER
+#endif
+
+#ifdef SCBB_SHT3X_DELAY_HEADER
+#include SCBB_SHT3X_DELAY_HEADER
 #endif
 
 #define AXK_SHT3X_ADDRESS 0x44
@@ -41,4 +36,6 @@ unsigned char axk_sht3x_init(void);
 unsigned char axk_sht3x_set_mode(unsigned int _mode);
 unsigned char axk_sht3x_read(unsigned int _mode, double *temp,
                              double *humidity);
+
+#endif /* SCBB_SHT3X_ENABLED */
 #endif /* __AXK_SHT3X_H__ */

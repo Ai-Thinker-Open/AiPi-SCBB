@@ -89,7 +89,7 @@ All I2C modules use `__has_include` to require `stm32f10x_bsp_i2c.h`. Each modul
 
 ```c
 // Pattern used by CH224A and SHT3x:
-#define AXK_CH224_I2C_ACLL(_func, ...) bsp_i2c_##_func(__VA_ARGS__)
+#define AXK_CH224A_I2C_ACLL(_func, ...) bsp_i2c##_##_func(__VA_ARGS__)
 ```
 
 This token-pasting macro expands `bsp_i2c_start()`, `bsp_i2c_send_byte()`, etc. **Do not call BSP functions directly** from module code — always go through the macro.

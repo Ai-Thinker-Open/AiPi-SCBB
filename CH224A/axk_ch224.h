@@ -13,20 +13,15 @@
 
 #include "scbb_config.h"
 
-/**
- * @brief I2C BSP 头文件配置。
- *        优先使用 scbb_config.h 中的 SCBB_BSP_I2C_HEADER 定义。
- */
-#ifdef SCBB_BSP_I2C_HEADER
-#include SCBB_BSP_I2C_HEADER
-#define AXK_CH224_I2C_ACLL(_func, ...) bsp_i2c_##_func(__VA_ARGS__)
-#define AXK_CH224_DELAY_MS(x) delay_ms(x)
-#elif __has_include("stm32f10x_bsp_i2c.h")
-#include "stm32f10x_bsp_i2c.h"
-#define AXK_CH224_I2C_ACLL(_func, ...) bsp_i2c_##_func(__VA_ARGS__)
-#define AXK_CH224_DELAY_MS(x) delay_ms(x)
-#else
-#error "Please include the appropriate I2C header for CH224 or set SCBB_BSP_I2C_HEADER in scbb_config.h."
+#ifdef SCBB_CH224A_ENABLED
+
+/* BSP headers and ACLL macros are defined in scbb_config.h */
+#ifdef SCBB_CH224A_I2C_HEADER
+#include SCBB_CH224A_I2C_HEADER
+#endif
+
+#ifdef SCBB_CH224A_DELAY_HEADER
+#include SCBB_CH224A_DELAY_HEADER
 #endif
 
 #define AXK_CH224_I2C_ADDR 0x22
@@ -61,4 +56,6 @@ int axk_ch224_set_vout(axk_ch224_vout_t VOUT);
 int axk_ch224_set_mode(axk_ch224_vout_t _mode);
 int axk_ch224_set_pps_vout(float PPS_VOUT);
 int axk_ch224_set_avs_vout(float AVS_VOUT);
+
+#endif /* SCBB_CH224A_ENABLED */
 #endif

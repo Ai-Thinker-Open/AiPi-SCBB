@@ -10,8 +10,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Set console window title
+sys.stdout.write("\033]0;AiPi-SCBB\007")
+sys.stdout.flush()
+
 ROOT = Path(__file__).resolve().parent
 CONFIG_FILE = ".config"
+CONFIG_HEADER_NAME = "scbb_config.h"
 
 
 def find_menuconfig():
@@ -23,9 +28,23 @@ def find_menuconfig():
     return [sys.executable, "-m", "kconfiglib", "menuconfig", "Kconfig"]
 
 
+def find_and_remove_old_config_headers():
+    """Find and remove all existing scbb_config.h files to ensure uniqueness."""
+    removed = []
+    for f in ROOT.rglob(CONFIG_HEADER_NAME):
+        # Skip .git and .mimocode directories
+        parts = f.relative_to(ROOT).parts
+        if any(p.startswith(".") for p in parts):
+            continue
+        f.unlink()
+        removed.append(str(f.relative_to(ROOT)))
+    return removed
+
+
 cmd = find_menuconfig()
 env = os.environ.copy()
 env["KCONFIG_CONFIG"] = str(ROOT / CONFIG_FILE)
+env["MENUCONFIG_STYLE"] = "aquatic"
 
 try:
     subprocess.check_call(cmd, cwd=str(ROOT), env=env)
@@ -43,12 +62,34 @@ if not (ROOT / CONFIG_FILE).exists():
     input("Press Enter to exit...")
     sys.exit(1)
 
+# Read output path from .config
+output_path = CONFIG_HEADER_NAME
+config_path = ROOT / CONFIG_FILE
+with open(config_path, "r") as f:
+    for line in f:
+        line = line.strip()
+        if line.startswith("CONFIG_SCBB_CONFIG_HEADER_PATH="):
+            val = line.split("=", 1)[1]
+            if len(val) >= 2 and val[0] == '"' and val[-1] == '"':
+                val = val[1:-1]
+            output_path = val
+            break
+
+# Ensure uniqueness: remove old scbb_config.h files
+removed = find_and_remove_old_config_headers()
+if removed:
+    print(f"Removed old config headers: {', '.join(removed)}")
+
+# Ensure output directory exists
+output_full = ROOT / output_path
+output_full.parent.mkdir(parents=True, exist_ok=True)
+
 try:
     subprocess.check_call(
-        [sys.executable, "scripts/gen_config_header.py", CONFIG_FILE, "scbb_config.h"],
+        [sys.executable, "scripts/gen_config_header.py", CONFIG_FILE, output_path],
         cwd=str(ROOT),
     )
-    print("scbb_config.h generated successfully.")
+    print(f"{output_path} generated successfully.")
 except subprocess.CalledProcessError as e:
     print(f"\nHeader generation failed (exit {e.returncode})", file=sys.stderr)
     input("Press Enter to exit...")
