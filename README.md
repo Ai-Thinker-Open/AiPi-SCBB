@@ -23,27 +23,10 @@ Built on STM32 HAL and FreeRTOS, designed for the AiPi development board series.
 pip install kconfiglib windows-curses
 ```
 
-### Windows Build Environment (MSYS2)
+### Build Tools
 
-1. Install [MSYS2](https://www.msys2.org/)
-2. Open **MSYS2 UCRT64** terminal
-3. Install toolchain:
-
-```bash
-pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-gcc make
-```
-
-4. Install Python:
-
-```bash
-pacman -S mingw-w64-ucrt-x86_64-python pip
-```
-
-5. Add `C:\msys64\ucrt64\bin` to system PATH
-
-### Linux / macOS
-
-Ensure `cmake`, `gcc`, and Python 3.x are installed.
+- CMake 3.15+
+- GCC (ARM cross-compiler for STM32)
 
 ## Configuration
 
