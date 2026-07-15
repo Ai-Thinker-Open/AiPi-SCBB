@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.png" alt="AiPi-SCBB" width="400">
+  <img src="docs/logo.png" alt="AiPi-SCBB" width="70%">
 </p>
 
 [![中文](https://img.shields.io/badge/中文-README__zh-blue)](README_zh.md)
@@ -40,7 +40,7 @@ Run the graphical configuration tool:
 python menuconfig.py
 ```
 
-![menuconfig](docs/img/config_mod.png.jpg)
+![menuconfig](docs/img/enable_mod.png)
 
 **Steps:**
 

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.png" alt="AiPi-SCBB" width="400">
+  <img src="docs/logo.png" alt="AiPi-SCBB" width="70%">
 </p>
 
 [![English](https://img.shields.io/badge/English-README-blue)](README.md)
