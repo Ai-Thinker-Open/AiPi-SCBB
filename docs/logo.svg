@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 624 72" width="624" height="72">
+  <rect width="624" height="72" rx="6" fill="#1e1e2e"/>
+  <!-- A -->
+  <rect x="8" y="12" width="8" height="48" fill="#cdd6f4"/>
+  <rect x="16" y="8" width="8" height="8" fill="#cdd6f4"/>
+  <rect x="24" y="12" width="8" height="48" fill="#cdd6f4"/>
+  <rect x="16" y="32" width="8" height="8" fill="#cdd6f4"/>
+  <!-- i -->
+  <rect x="40" y="24" width="8" height="36" fill="#cdd6f4"/>
+  <rect x="40" y="12" width="8" height="8" fill="#f38ba8"/>
+  <!-- P -->
+  <rect x="56" y="12" width="8" height="48" fill="#cdd6f4"/>
+  <rect x="64" y="8" width="8" height="8" fill="#cdd6f4"/>
+  <rect x="72" y="12" width="8" height="16" fill="#cdd6f4"/>
+  <rect x="64" y="28" width="8" height="8" fill="#cdd6f4"/>
+  <!-- i -->
+  <rect x="88" y="24" width="8" height="36" fill="#cdd6f4"/>
+  <rect x="88" y="12" width="8" height="8" fill="#f38ba8"/>
+  <!-- - -->
+  <rect x="108" y="32" width="16" height="8" fill="#6c7086"/>
+  <!-- S -->
+  <rect x="136" y="8" width="24" height="8" fill="#a6e3a1"/>
+  <rect x="136" y="16" width="8" height="8" fill="#a6e3a1"/>
+  <rect x="136" y="24" width="16" height="8" fill="#a6e3a1"/>
+  <rect x="152" y="32" width="8" height="8" fill="#a6e3a1"/>
+  <rect x="136" y="40" width="24" height="8" fill="#a6e3a1"/>
+  <!-- C -->
+  <rect x="168" y="8" width="24" height="8" fill="#a6e3a1"/>
+  <rect x="168" y="16" width="8" height="40" fill="#a6e3a1"/>
+  <rect x="168" y="48" width="24" height="8" fill="#a6e3a1"/>
+  <!-- C -->
+  <rect x="200" y="8" width="24" height="8" fill="#a6e3a1"/>
+  <rect x="200" y="16" width="8" height="40" fill="#a6e3a1"/>
+  <rect x="200" y="48" width="24" height="8" fill="#a6e3a1"/>
+  <!-- B -->
+  <rect x="232" y="12" width="8" height="48" fill="#a6e3a1"/>
+  <rect x="240" y="8" width="8" height="8" fill="#a6e3a1"/>
+  <rect x="248" y="12" width="8" height="16" fill="#a6e3a1"/>
+  <rect x="240" y="28" width="8" height="8" fill="#a6e3a1"/>
+  <rect x="248" y="36" width="8" height="24" fill="#a6e3a1"/>
+  <rect x="240" y="56" width="8" height="8" fill="#a6e3a1"/>
+  <!-- B -->
+  <rect x="264" y="12" width="8" height="48" fill="#a6e3a1"/>
+  <rect x="272" y="8" width="8" height="8" fill="#a6e3a1"/>
+  <rect x="280" y="12" width="8" height="16" fill="#a6e3a1"/>
+  <rect x="272" y="28" width="8" height="8" fill="#a6e3a1"/>
+  <rect x="280" y="36" width="8" height="24" fill="#a6e3a1"/>
+  <rect x="272" y="56" width="8" height="8" fill="#a6e3a1"/>
+</svg>

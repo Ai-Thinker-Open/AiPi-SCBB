@@ -1,4 +1,6 @@
-# AiPi-SCBB
+<p align="center">
+  <img src="docs/logo.svg" alt="AiPi-SCBB" width="400">
+</p>
 
 [![中文](https://img.shields.io/badge/中文-README__zh-blue)](README_zh.md)
 
