@@ -79,6 +79,18 @@ python menuconfig.py
 
 3. 重新编译
 
+### 关于 `scbb_config.h`
+
+`scbb_config.h` 是本项目的核心配置文件，它控制：
+
+- **哪些模块被编译** — `#define SCBB_<MODULE>_ENABLED 1` 启用对应模块
+- **BSP 抽象宏** — ACLL 宏将模块调用映射到你的硬件（如 `AXK_CH224A_I2C_ACLL` → `bsp_i2c_init()`）
+- **BSP 头文件和前缀配置** — 每个模块使用的头文件名和函数前缀
+
+此文件由 **menuconfig.py 自动生成**，并在 **CMake 配置时读取**。所有模块头文件（`axk_ch224.h`、`axk_sht3x.h` 等）都包含 `scbb_config.h` 以获取 BSP 配置。
+
+> **不要手动编辑 `scbb_config.h`** — 重新运行 `python menuconfig.py` 即可重新生成。如需自定义配置，请在 menuconfig 中修改选项，或使用上述手动配置方法。
+
 ## 集成到项目
 
 ### 方式 A：CMake add_subdirectory（推荐）
