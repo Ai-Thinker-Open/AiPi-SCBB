@@ -40,7 +40,9 @@ Run the graphical configuration tool:
 python menuconfig.py
 ```
 
-![menuconfig](docs/img/enable_mod.png)
+<p align="center">
+  <img src="docs/img/config_mod.png.jpg" alt="menuconfig" width="70%">
+</p>
 
 **Steps:**
 
@@ -49,11 +51,15 @@ python menuconfig.py
 3. Press `Y` to enable a module (marked as `[*]`)
 4. Expand a module to configure BSP header and prefix (e.g. `stm32f10x_bsp_i2c.h`, `bsp_i2c`)
 
-![module enabled](docs/img/enable_mod.png)
+<p align="center">
+  <img src="docs/img/enable_mod.png" alt="module enabled" width="70%">
+</p>
 
 5. Enter `Output` menu to set `scbb_config.h` output path (default: `config/scbb_config.h`)
 
-![output path](docs/img/scbb_config_path.jpg)
+<p align="center">
+  <img src="docs/img/scbb_config_path.jpg" alt="output path" width="70%">
+</p>
 
 6. Press `S` to save, then `Q` to exit
 

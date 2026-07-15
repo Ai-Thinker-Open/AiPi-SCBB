@@ -40,7 +40,9 @@ pip install kconfiglib windows-curses
 python menuconfig.py
 ```
 
-![menuconfig 主界面](docs/img/config_mod.png.jpg)
+<p align="center">
+  <img src="docs/img/config_mod.png.jpg" alt="menuconfig 主界面" width="70%">
+</p>
 
 **操作步骤：**
 
@@ -49,11 +51,15 @@ python menuconfig.py
 3. 按 `Y` 启用模块（显示为 `[*]`）
 4. 展开模块可配置 BSP 头文件和函数前缀（如 `stm32f10x_bsp_i2c.h`、`bsp_i2c`）
 
-![模块启用状态](docs/img/enable_mod.png)
+<p align="center">
+  <img src="docs/img/enable_mod.png" alt="模块启用状态" width="70%">
+</p>
 
 5. 进入 `Output` 菜单设置 `scbb_config.h` 输出路径（默认：`config/scbb_config.h`）
 
-![输出路径配置](docs/img/scbb_config_path.jpg)
+<p align="center">
+  <img src="docs/img/scbb_config_path.jpg" alt="输出路径配置" width="70%">
+</p>
 
 6. 按 `S` 保存，再按 `Q` 退出
 
