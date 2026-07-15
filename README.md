@@ -1,5 +1,8 @@
 # AiPi-SCBB
 
+[![English](https://img.shields.io/badge/English-README-blue)](README.md)
+[![中文](https://img.shields.io/badge/中文-README__zh-blue)](README_zh.md)
+
 Ai-Thinker STM32F10x peripheral driver library providing a unified hardware abstraction layer for I2C, PWM+DMA, and UART external components.
 
 Built on STM32 HAL and FreeRTOS, designed for the AiPi development board series.
