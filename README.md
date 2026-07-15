@@ -4,9 +4,9 @@
 
 [![中文](https://img.shields.io/badge/中文-README__zh-blue)](README_zh.md)
 
-Ai-Thinker STM32F10x peripheral driver library providing a unified hardware abstraction layer for I2C, PWM+DMA, and UART external components.
+Ai-Thinker general-purpose peripheral driver library providing a unified hardware abstraction layer for I2C, PWM+DMA, and UART external components.
 
-Built on STM32 HAL and FreeRTOS, designed for the AiPi development board series.
+Platform-agnostic by design — the library uses configurable BSP (Board Support Package) macros, allowing you to port it to any MCU platform by providing your own BSP implementations.
 
 ## Supported Modules
 
@@ -28,7 +28,7 @@ pip install kconfiglib windows-curses
 ### Build Tools
 
 - CMake 3.15+
-- GCC (ARM cross-compiler for STM32)
+- GCC (or any C compiler for your target platform)
 
 ## Configuration
 
@@ -49,7 +49,7 @@ python menuconfig.py
 1. Run the command to open the TUI configuration interface
 2. Use `↑` `↓` arrow keys to select a module
 3. Press `Y` to enable a module (marked as `[*]`)
-4. Expand a module to configure BSP header and prefix (e.g. `stm32f10x_bsp_i2c.h`, `bsp_i2c`)
+4. Expand a module to configure BSP header and prefix (e.g. `my_platform_i2c.h`, `my_i2c`)
 
 <p align="center">
   <img src="docs/img/enable_mod.png" alt="module enabled" width="70%">
@@ -130,7 +130,7 @@ For non-CMake build systems (Keil, IAR, Makefile, etc.), add files manually:
    - `WS2812/axk_ws2812.c` + `axk_ws2812.h` + `color_mode.c` + `color_mode.h`
    - `HXD039B2/axk_hxd039b2.c` + `axk_hxd039b2.h`
 
-2. If `SCBB_USE_BSP` is enabled, also add the corresponding BSP source files from `STM32F10x_bsp/`
+2. If `SCBB_USE_BSP` is enabled, also add the corresponding BSP source files from `STM32F10x_bsp/` (only needed for STM32F10x platform)
 
 3. Ensure `scbb_config.h` is in your header search path
 
@@ -138,10 +138,8 @@ For non-CMake build systems (Keil, IAR, Makefile, etc.), add files manually:
 
 | Dependency | Description |
 |------------|-------------|
-| `stm32f1xx_hal.h` | STM32 HAL library |
-| `FreeRTOS.h` / `task.h` / `timers.h` | FreeRTOS RTOS |
-| `log.h` | Logging macros (provided by host firmware) |
-| `tim.h` | HAL timer handle (`htim1`, used for PWM+DMA) |
+| `log.h` | Logging macros (provided by your firmware) |
+| `FreeRTOS.h` / `task.h` / `timers.h` | FreeRTOS RTOS (optional, used by some modules) |
 
 ## Updating
 

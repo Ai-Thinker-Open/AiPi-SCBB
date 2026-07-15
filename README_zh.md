@@ -4,9 +4,9 @@
 
 [![English](https://img.shields.io/badge/English-README-blue)](README.md)
 
-Ai-Thinker STM32F10x 外设驱动库，为 I2C、PWM+DMA、UART 协议的外部器件提供统一的硬件抽象层。
+Ai-Thinker 通用外设驱动库，为 I2C、PWM+DMA、UART 协议的外部器件提供统一的硬件抽象层。
 
-基于 STM32 HAL 和 FreeRTOS 构建，适用于 AiPi 系列开发板。
+平台无关设计 — 库通过可配置的 BSP（板级支持包）宏实现硬件抽象，你可以为任何 MCU 平台提供自己的 BSP 实现。
 
 ## 支持的模块
 
@@ -28,7 +28,7 @@ pip install kconfiglib windows-curses
 ### 编译工具
 
 - CMake 3.15+
-- GCC（STM32 交叉编译器）
+- GCC（或目标平台的任意 C 编译器）
 
 ## 配置模块
 
@@ -49,7 +49,7 @@ python menuconfig.py
 1. 运行命令后进入 TUI 配置界面
 2. 用 `↑` `↓` 方向键选择模块
 3. 按 `Y` 启用模块（显示为 `[*]`）
-4. 展开模块可配置 BSP 头文件和函数前缀（如 `stm32f10x_bsp_i2c.h`、`bsp_i2c`）
+4. 展开模块可配置 BSP 头文件和函数前缀（如 `my_platform_i2c.h`、`my_i2c`）
 
 <p align="center">
   <img src="docs/img/enable_mod.png" alt="模块启用状态" width="70%">
@@ -130,7 +130,7 @@ target_link_libraries(your_app PRIVATE AiPi::SCBB)
    - `WS2812/axk_ws2812.c` + `axk_ws2812.h` + `color_mode.c` + `color_mode.h`
    - `HXD039B2/axk_hxd039b2.c` + `axk_hxd039b2.h`
 
-2. 如果启用 `SCBB_USE_BSP`，还需添加 `STM32F10x_bsp/` 下对应的 BSP 源文件
+2. 如果启用 `SCBB_USE_BSP`，还需添加 `STM32F10x_bsp/` 下对应的 BSP 源文件（仅 STM32F10x 平台需要）
 
 3. 确保 `scbb_config.h` 在头文件搜索路径中
 
@@ -138,10 +138,8 @@ target_link_libraries(your_app PRIVATE AiPi::SCBB)
 
 | 依赖 | 说明 |
 |------|------|
-| `stm32f1xx_hal.h` | STM32 HAL 库 |
-| `FreeRTOS.h` / `task.h` / `timers.h` | FreeRTOS 实时操作系统 |
-| `log.h` | 日志宏（由宿主固件提供） |
-| `tim.h` | HAL 定时器句柄（`htim1`，用于 PWM+DMA） |
+| `log.h` | 日志宏（由你的固件提供） |
+| `FreeRTOS.h` / `task.h` / `timers.h` | FreeRTOS 实时操作系统（可选，部分模块使用） |
 
 ## 更新代码
 
