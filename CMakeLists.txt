@@ -23,7 +23,7 @@ macro(scbb_read_config)
     if(EXISTS "${_config_path}")
         file(READ "${_config_path}" _config_content)
 
-        set(_all_modules CH224A SHT3X WS2812 HXD039B2)
+        set(_all_modules CH224A SHT3X WS2812 HXD039B2 1_47_LCD)
         foreach(_mod ${_all_modules})
             if(_config_content MATCHES "#define SCBB_${_mod}_ENABLED")
                 set(SCBB_${_mod}_ENABLED ON)
@@ -77,6 +77,14 @@ set(SCBB_HXD039B2_GPIO_PREFIX   "bsp_gpio"             CACHE STRING "HXD039B2 GP
 set(SCBB_HXD039B2_DELAY_HEADER  "stm32f10x_delay.h"    CACHE STRING "HXD039B2 Delay BSP header")
 set(SCBB_HXD039B2_DELAY_PREFIX  "delay"                CACHE STRING "HXD039B2 Delay BSP function prefix")
 
+# 1.47_LCD (Bouffalo BL616/BL618 — 直接使用 LHAL，无需 BSP)
+set(SCBB_1_47_LCD_SPI_HEADER    ""  CACHE STRING "1.47_LCD SPI BSP header")
+set(SCBB_1_47_LCD_SPI_PREFIX    ""  CACHE STRING "1.47_LCD SPI BSP function prefix")
+set(SCBB_1_47_LCD_GPIO_HEADER   ""  CACHE STRING "1.47_LCD GPIO BSP header")
+set(SCBB_1_47_LCD_GPIO_PREFIX   ""  CACHE STRING "1.47_LCD GPIO BSP function prefix")
+set(SCBB_1_47_LCD_DELAY_HEADER  ""  CACHE STRING "1.47_LCD Delay BSP header")
+set(SCBB_1_47_LCD_DELAY_PREFIX  ""  CACHE STRING "1.47_LCD Delay BSP function prefix")
+
 # ─── Collect enabled modules ───────────────────────────────────────
 set(SCBB_SOURCES "")
 set(SCBB_HEADERS "")
@@ -120,6 +128,15 @@ if(SCBB_HXD039B2_ENABLED)
     list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/HXD039B2/axk_hxd039b2.h)
     if(SCBB_IS_TOP_LEVEL)
         message(STATUS "AiPi-SCBB: HXD039B2 enabled (UART+GPIO)")
+    endif()
+endif()
+
+# 1.47_LCD module (Bouffalo BL616/BL618)
+if(SCBB_1_47_LCD_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/1.47_LCD/axk_1_47_lcd.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/1.47_LCD/axk_1_47_lcd.h)
+    if(SCBB_IS_TOP_LEVEL)
+        message(STATUS "AiPi-SCBB: 1.47_LCD enabled (SPI+GPIO, BL616/BL618)")
     endif()
 endif()
 
@@ -186,6 +203,9 @@ if(SCBB_SOURCES)
     if(SCBB_HXD039B2_ENABLED)
         target_compile_definitions(aipi_scbb PUBLIC SCBB_HXD039B2_ENABLED=1)
     endif()
+    if(SCBB_1_47_LCD_ENABLED)
+        target_compile_definitions(aipi_scbb PUBLIC SCBB_1_47_LCD_ENABLED=1)
+    endif()
 
     # Link built-in BSP libraries
     if(SCBB_USE_BSP)
@@ -240,6 +260,16 @@ if(SCBB_SOURCES)
                 "SCBB_HXD039B2_GPIO_PREFIX=${SCBB_HXD039B2_GPIO_PREFIX}"
                 "SCBB_HXD039B2_DELAY_HEADER=\"${SCBB_HXD039B2_DELAY_HEADER}\""
                 "SCBB_HXD039B2_DELAY_PREFIX=${SCBB_HXD039B2_DELAY_PREFIX}"
+            )
+        endif()
+        if(SCBB_1_47_LCD_ENABLED)
+            target_compile_definitions(aipi_scbb PUBLIC
+                "SCBB_1_47_LCD_SPI_HEADER=\"${SCBB_1_47_LCD_SPI_HEADER}\""
+                "SCBB_1_47_LCD_SPI_PREFIX=${SCBB_1_47_LCD_SPI_PREFIX}"
+                "SCBB_1_47_LCD_GPIO_HEADER=\"${SCBB_1_47_LCD_GPIO_HEADER}\""
+                "SCBB_1_47_LCD_GPIO_PREFIX=${SCBB_1_47_LCD_GPIO_PREFIX}"
+                "SCBB_1_47_LCD_DELAY_HEADER=\"${SCBB_1_47_LCD_DELAY_HEADER}\""
+                "SCBB_1_47_LCD_DELAY_PREFIX=${SCBB_1_47_LCD_DELAY_PREFIX}"
             )
         endif()
     endif()

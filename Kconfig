@@ -91,6 +91,36 @@ if SCBB_HXD039B2_ENABLED
         default "delay"
 endif
 
+config SCBB_1_47_LCD_ENABLED
+    bool "Enable 1.47_LCD [1.47\" IPS LCD ST7789V 172x320, BL616/BL618]"
+    default n
+
+if SCBB_1_47_LCD_ENABLED
+    config SCBB_1_47_LCD_SPI_HEADER
+        string "1.47_LCD - SPI BSP header"
+        default ""
+
+    config SCBB_1_47_LCD_SPI_PREFIX
+        string "1.47_LCD - SPI BSP function prefix"
+        default ""
+
+    config SCBB_1_47_LCD_GPIO_HEADER
+        string "1.47_LCD - GPIO BSP header"
+        default ""
+
+    config SCBB_1_47_LCD_GPIO_PREFIX
+        string "1.47_LCD - GPIO BSP function prefix"
+        default ""
+
+    config SCBB_1_47_LCD_DELAY_HEADER
+        string "1.47_LCD - Delay BSP header"
+        default ""
+
+    config SCBB_1_47_LCD_DELAY_PREFIX
+        string "1.47_LCD - Delay BSP function prefix"
+        default ""
+endif
+
 menu "Output"
     config SCBB_CONFIG_HEADER_PATH
         string "scbb_config.h output path"
