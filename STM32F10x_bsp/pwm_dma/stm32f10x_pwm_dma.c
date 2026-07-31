@@ -64,7 +64,7 @@ static void convert_rgb_to_ws2812_data(uint8_t r, uint8_t g, uint8_t b,
 }
 int bsp_pwm_dma_with_num(void) {
   // 确保设备和数据指针有效
-  if (axk_ws2812_strip_dev == NULL || axk_ws2812_strip_dev->dev == NULL) {
+  if (g_axk_ws2812_strip_dev == NULL || g_axk_ws2812_strip_dev->dev == NULL) {
     log_error("WS2812 device not initialized");
     return -1;
   }
@@ -73,18 +73,18 @@ int bsp_pwm_dma_with_num(void) {
   uint16_t *current_pos = buffer_ptr;
 
   // 为每个LED生成对应的时序数据
-  uint16_t led_count = (axk_ws2812_strip_dev->led_count < WS2812_MAX_NUM)
-                           ? axk_ws2812_strip_dev->led_count
+  uint16_t led_count = (g_axk_ws2812_strip_dev->led_count < WS2812_MAX_NUM)
+                           ? g_axk_ws2812_strip_dev->led_count
                            : WS2812_MAX_NUM;
 
   for (uint16_t i = 0; i < led_count; i++) {
     // 应用亮度调节
-    uint8_t r = (uint8_t)(axk_ws2812_strip_dev->dev[i].color.r *
-                          axk_ws2812_strip_dev->brightness);
-    uint8_t g = (uint8_t)(axk_ws2812_strip_dev->dev[i].color.g *
-                          axk_ws2812_strip_dev->brightness);
-    uint8_t b = (uint8_t)(axk_ws2812_strip_dev->dev[i].color.b *
-                          axk_ws2812_strip_dev->brightness);
+    uint8_t r = (uint8_t)(g_axk_ws2812_strip_dev->dev[i].color.r *
+                          g_axk_ws2812_strip_dev->brightness);
+    uint8_t g = (uint8_t)(g_axk_ws2812_strip_dev->dev[i].color.g *
+                          g_axk_ws2812_strip_dev->brightness);
+    uint8_t b = (uint8_t)(g_axk_ws2812_strip_dev->dev[i].color.b *
+                          g_axk_ws2812_strip_dev->brightness);
 
     // 转换RGB颜色为WS2812时序数据
     convert_rgb_to_ws2812_data(r, g, b, current_pos);

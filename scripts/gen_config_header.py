@@ -96,12 +96,10 @@ def generate_header(config, output_path):
             header = info["header"]
             prefix = info["prefix"]
 
-            # Generate HEADER define
             if header:
                 define_name = f"SCBB_{module}_{bsp_type}_HEADER"
                 lines.append(f'#define {define_name} "{header}"')
 
-            # Generate ACLL macro (I2C/UART/GPIO/PWM_DMA types)
             if bsp_type != "DELAY":
                 macro_name = f"AXK_{module}_{bsp_type}_ACLL"
                 lines.append(
@@ -109,11 +107,14 @@ def generate_header(config, output_path):
                     + prefix + "##_##_func(__VA_ARGS__)"
                 )
 
-            # Generate DELAY macro
             if bsp_type == "DELAY":
                 macro_name = f"AXK_{module}_DELAY_MS"
                 lines.append(
                     f"#define {macro_name}(x) " + prefix + "_ms(x)"
+                )
+                macro_name = f"AXK_{module}_DELAY_US"
+                lines.append(
+                    f"#define {macro_name}(x) " + prefix + "_us(x)"
                 )
 
         lines.append("")

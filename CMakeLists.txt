@@ -23,7 +23,7 @@ macro(scbb_read_config)
     if(EXISTS "${_config_path}")
         file(READ "${_config_path}" _config_content)
 
-        set(_all_modules CH224A SHT3X WS2812 HXD039B2)
+        set(_all_modules CH224A SHT3X WS2812 HXD039B2 ST7789V_LCD RELAY DHT11 RD03_V2 OLED_096_SPI DS1302 INA226)
         foreach(_mod ${_all_modules})
             if(_config_content MATCHES "#define SCBB_${_mod}_ENABLED")
                 set(SCBB_${_mod}_ENABLED ON)
@@ -77,6 +77,52 @@ set(SCBB_HXD039B2_GPIO_PREFIX   "bsp_gpio"             CACHE STRING "HXD039B2 GP
 set(SCBB_HXD039B2_DELAY_HEADER  "stm32f10x_delay.h"    CACHE STRING "HXD039B2 Delay BSP header")
 set(SCBB_HXD039B2_DELAY_PREFIX  "delay"                CACHE STRING "HXD039B2 Delay BSP function prefix")
 
+# ST7789V_LCD (Bouffalo BL616/BL618 — 默认留空，直接使用 LHAL)
+set(SCBB_ST7789V_LCD_SPI_HEADER    "bl616_bsp_spi.h"   CACHE STRING "ST7789V_LCD SPI BSP header")
+set(SCBB_ST7789V_LCD_SPI_PREFIX    "bsp_spi"           CACHE STRING "ST7789V_LCD SPI BSP function prefix")
+set(SCBB_ST7789V_LCD_GPIO_HEADER   "bl616_bsp_gpio.h"  CACHE STRING "ST7789V_LCD GPIO BSP header")
+set(SCBB_ST7789V_LCD_GPIO_PREFIX   "bsp_gpio"          CACHE STRING "ST7789V_LCD GPIO BSP function prefix")
+set(SCBB_ST7789V_LCD_DELAY_HEADER  "bl616_bsp_delay.h" CACHE STRING "ST7789V_LCD Delay BSP header")
+set(SCBB_ST7789V_LCD_DELAY_PREFIX  "bsp_delay"         CACHE STRING "ST7789V_LCD Delay BSP function prefix")
+
+# RELAY
+set(SCBB_RELAY_GPIO_HEADER  "bl616_bsp_gpio.h"  CACHE STRING "RELAY GPIO BSP header")
+set(SCBB_RELAY_GPIO_PREFIX  "bsp_gpio"          CACHE STRING "RELAY GPIO BSP function prefix")
+set(SCBB_RELAY_DELAY_HEADER "bl616_bsp_delay.h" CACHE STRING "RELAY Delay BSP header")
+set(SCBB_RELAY_DELAY_PREFIX "bsp_delay"         CACHE STRING "RELAY Delay BSP function prefix")
+
+# DHT11
+set(SCBB_DHT11_GPIO_HEADER  "bl616_bsp_gpio.h"  CACHE STRING "DHT11 GPIO BSP header")
+set(SCBB_DHT11_GPIO_PREFIX  "bsp_gpio"          CACHE STRING "DHT11 GPIO BSP function prefix")
+set(SCBB_DHT11_DELAY_HEADER "bl616_bsp_delay.h" CACHE STRING "DHT11 Delay BSP header")
+set(SCBB_DHT11_DELAY_PREFIX "bsp_delay"         CACHE STRING "DHT11 Delay BSP function prefix")
+
+# DS1302
+set(SCBB_DS1302_GPIO_HEADER "bl616_bsp_gpio.h"  CACHE STRING "DS1302 GPIO BSP header")
+set(SCBB_DS1302_GPIO_PREFIX "bsp_gpio"          CACHE STRING "DS1302 GPIO BSP function prefix")
+set(SCBB_DS1302_DELAY_HEADER "bl616_bsp_delay.h" CACHE STRING "DS1302 Delay BSP header")
+set(SCBB_DS1302_DELAY_PREFIX "bsp_delay"         CACHE STRING "DS1302 Delay BSP function prefix")
+
+# INA226
+set(SCBB_INA226_I2C_HEADER "bl616_bsp_i2c.h"   CACHE STRING "INA226 I2C BSP header")
+set(SCBB_INA226_I2C_PREFIX "bsp_i2c"           CACHE STRING "INA226 I2C BSP function prefix")
+set(SCBB_INA226_DELAY_HEADER "bl616_bsp_delay.h" CACHE STRING "INA226 Delay BSP header")
+set(SCBB_INA226_DELAY_PREFIX "bsp_delay"         CACHE STRING "INA226 Delay BSP function prefix")
+
+# OLED_096_SPI
+set(SCBB_OLED_096_SPI_SPI_HEADER  "bl616_bsp_spi.h"   CACHE STRING "OLED_096_SPI SPI BSP header")
+set(SCBB_OLED_096_SPI_SPI_PREFIX  "bsp_spi"           CACHE STRING "OLED_096_SPI SPI BSP function prefix")
+set(SCBB_OLED_096_SPI_GPIO_HEADER "bl616_bsp_gpio.h"  CACHE STRING "OLED_096_SPI GPIO BSP header")
+set(SCBB_OLED_096_SPI_GPIO_PREFIX "bsp_gpio"          CACHE STRING "OLED_096_SPI GPIO BSP function prefix")
+set(SCBB_OLED_096_SPI_DELAY_HEADER "bl616_bsp_delay.h" CACHE STRING "OLED_096_SPI Delay BSP header")
+set(SCBB_OLED_096_SPI_DELAY_PREFIX "bsp_delay"         CACHE STRING "OLED_096_SPI Delay BSP function prefix")
+
+# RD03_V2
+set(SCBB_RD03_V2_UART_HEADER "bl616_bsp_uart.h"   CACHE STRING "RD03_V2 UART BSP header")
+set(SCBB_RD03_V2_UART_PREFIX "bsp_uart"           CACHE STRING "RD03_V2 UART BSP function prefix")
+set(SCBB_RD03_V2_DELAY_HEADER "bl616_bsp_delay.h" CACHE STRING "RD03_V2 Delay BSP header")
+set(SCBB_RD03_V2_DELAY_PREFIX "bsp_delay"         CACHE STRING "RD03_V2 Delay BSP function prefix")
+
 # ─── Collect enabled modules ───────────────────────────────────────
 set(SCBB_SOURCES "")
 set(SCBB_HEADERS "")
@@ -123,6 +169,69 @@ if(SCBB_HXD039B2_ENABLED)
     endif()
 endif()
 
+# ST7789V_LCD module (Bouffalo BL616/BL618)
+if(SCBB_ST7789V_LCD_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/ST7789V_LCD/axk_st7789v_lcd.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/ST7789V_LCD/axk_st7789v_lcd.h)
+    if(SCBB_IS_TOP_LEVEL)
+        message(STATUS "AiPi-SCBB: ST7789V_LCD enabled (SPI+GPIO, BL616/BL618)")
+    endif()
+endif()
+
+# RELAY module
+if(SCBB_RELAY_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/RELAY/axk_relay.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/RELAY/axk_relay.h)
+    if(SCBB_IS_TOP_LEVEL)
+        message(STATUS "AiPi-SCBB: RELAY enabled (GPIO)")
+    endif()
+
+# DHT11 module
+if(SCBB_DHT11_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/DHT11/axk_dht11.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/DHT11/axk_dht11.h)
+    if(SCBB_IS_TOP_LEVEL)
+        message(STATUS "AiPi-SCBB: DHT11 enabled (GPIO)")
+    endif()
+
+# DS1302 module
+if(SCBB_DS1302_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/DS1302/axk_ds1302.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/DS1302/axk_ds1302.h)
+    if(SCBB_IS_TOP_LEVEL)
+        message(STATUS "AiPi-SCBB: DS1302 enabled (GPIO)")
+    endif()
+
+# INA226 module
+if(SCBB_INA226_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/INA226/axk_ina226.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/INA226/axk_ina226.h)
+    if(SCBB_IS_TOP_LEVEL)
+        message(STATUS "AiPi-SCBB: INA226 enabled (I2C)")
+    endif()
+endif()
+endif()
+
+# OLED_096_SPI module
+if(SCBB_OLED_096_SPI_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/OLED_096_SPI/axk_oled_096_spi.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/OLED_096_SPI/axk_oled_096_spi.h)
+    if(SCBB_IS_TOP_LEVEL)
+        message(STATUS "AiPi-SCBB: OLED_096_SPI enabled (SPI+GPIO)")
+    endif()
+endif()
+
+# RD03_V2 module
+if(SCBB_RD03_V2_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/RD03_V2/axk_rd03_v2.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/RD03_V2/axk_rd03_v2.h)
+    if(SCBB_IS_TOP_LEVEL)
+        message(STATUS "AiPi-SCBB: RD03_V2 enabled (UART)")
+    endif()
+endif()
+endif()
+endif()
+
 # ─── Include built-in BSP if enabled ──────────────────────────────
 if(SCBB_USE_BSP)
     # Collect BSP dependencies from enabled modules
@@ -136,9 +245,14 @@ if(SCBB_USE_BSP)
     if(SCBB_HXD039B2_ENABLED)
         list(APPEND SCBB_BSP_DIRS uart gpio)
     endif()
+    if(SCBB_ST7789V_LCD_ENABLED)
+        list(APPEND SCBB_BSP_DIRS spi gpio delay)
+    endif()
 
     foreach(dir ${SCBB_BSP_DIRS})
-        if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/STM32F10x_bsp/${dir})
+        if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BL616_bsp/${dir})
+            add_subdirectory(BL616_bsp/${dir})
+        elseif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/STM32F10x_bsp/${dir})
             add_subdirectory(STM32F10x_bsp/${dir})
         elseif(SCBB_IS_TOP_LEVEL)
             message(STATUS "AiPi-SCBB: BSP dir '${dir}' not found (skipped)")
@@ -186,6 +300,27 @@ if(SCBB_SOURCES)
     if(SCBB_HXD039B2_ENABLED)
         target_compile_definitions(aipi_scbb PUBLIC SCBB_HXD039B2_ENABLED=1)
     endif()
+    if(SCBB_ST7789V_LCD_ENABLED)
+        target_compile_definitions(aipi_scbb PUBLIC SCBB_ST7789V_LCD_ENABLED=1)
+    endif()
+    if(SCBB_RELAY_ENABLED)
+        target_compile_definitions(aipi_scbb PUBLIC SCBB_RELAY_ENABLED=1)
+    endif()
+    if(SCBB_DHT11_ENABLED)
+        target_compile_definitions(aipi_scbb PUBLIC SCBB_DHT11_ENABLED=1)
+    endif()
+    if(SCBB_DS1302_ENABLED)
+        target_compile_definitions(aipi_scbb PUBLIC SCBB_DS1302_ENABLED=1)
+    endif()
+    if(SCBB_INA226_ENABLED)
+        target_compile_definitions(aipi_scbb PUBLIC SCBB_INA226_ENABLED=1)
+    endif()
+    if(SCBB_OLED_096_SPI_ENABLED)
+        target_compile_definitions(aipi_scbb PUBLIC SCBB_OLED_096_SPI_ENABLED=1)
+    endif()
+    if(SCBB_RD03_V2_ENABLED)
+        target_compile_definitions(aipi_scbb PUBLIC SCBB_RD03_V2_ENABLED=1)
+    endif()
 
     # Link built-in BSP libraries
     if(SCBB_USE_BSP)
@@ -206,6 +341,17 @@ if(SCBB_SOURCES)
             endif()
             if(TARGET aipi_bsp_gpio)
                 target_link_libraries(aipi_scbb PUBLIC aipi_bsp_gpio)
+            endif()
+        endif()
+        if(SCBB_ST7789V_LCD_ENABLED)
+            if(TARGET aipi_bsp_spi)
+                target_link_libraries(aipi_scbb PUBLIC aipi_bsp_spi)
+            endif()
+            if(TARGET aipi_bsp_gpio)
+                target_link_libraries(aipi_scbb PUBLIC aipi_bsp_gpio)
+            endif()
+            if(TARGET aipi_bsp_delay)
+                target_link_libraries(aipi_scbb PUBLIC aipi_bsp_delay)
             endif()
         endif()
     else()
@@ -240,6 +386,16 @@ if(SCBB_SOURCES)
                 "SCBB_HXD039B2_GPIO_PREFIX=${SCBB_HXD039B2_GPIO_PREFIX}"
                 "SCBB_HXD039B2_DELAY_HEADER=\"${SCBB_HXD039B2_DELAY_HEADER}\""
                 "SCBB_HXD039B2_DELAY_PREFIX=${SCBB_HXD039B2_DELAY_PREFIX}"
+            )
+        endif()
+        if(SCBB_ST7789V_LCD_ENABLED)
+            target_compile_definitions(aipi_scbb PUBLIC
+                "SCBB_ST7789V_LCD_SPI_HEADER=\"${SCBB_ST7789V_LCD_SPI_HEADER}\""
+                "SCBB_ST7789V_LCD_SPI_PREFIX=${SCBB_ST7789V_LCD_SPI_PREFIX}"
+                "SCBB_ST7789V_LCD_GPIO_HEADER=\"${SCBB_ST7789V_LCD_GPIO_HEADER}\""
+                "SCBB_ST7789V_LCD_GPIO_PREFIX=${SCBB_ST7789V_LCD_GPIO_PREFIX}"
+                "SCBB_ST7789V_LCD_DELAY_HEADER=\"${SCBB_ST7789V_LCD_DELAY_HEADER}\""
+                "SCBB_ST7789V_LCD_DELAY_PREFIX=${SCBB_ST7789V_LCD_DELAY_PREFIX}"
             )
         endif()
     endif()
