@@ -1,6 +1,11 @@
 /**
  * @file axk_ds1302.c
- * @brief DS1302 RTC — 纯 ACLL GPIO 位操作
+ * @brief DS1302 RTC — 纯 ACLL GPIO 位操作实现。
+ * @author xemowo (xemowo@qq.com)
+ * @version 0.1.1
+ * @date 2026-07-31
+ *
+ * @copyright Copyright (c) 2026
  */
 #include "axk_ds1302.h"
 
@@ -20,6 +25,12 @@ static void io_out(void) { GI(IO, 1); }
 static void io_in(void)  { GI(IO, 0); }
 static void sclk(void)   { GS(CLK); DUS(1); GR(CLK); }
 
+/**
+ * @brief 通过 3 线接口读写一个字节（LSB 优先）
+ *
+ * @param[in]  d       要写入的字节（写模式时）
+ * @return     uint8_t 读取到的字节（读模式时）
+ */
 static uint8_t rw_byte(uint8_t d) {
     uint8_t r = 0;
     for (int i = 0; i < 8; i++) {
@@ -31,6 +42,11 @@ static uint8_t rw_byte(uint8_t d) {
     return r;
 }
 
+/**
+ * @brief 初始化 DS1302 GPIO 引脚
+ *
+ * @return int  0: 成功
+ */
 int axk_ds1302_init(void) {
     GI(CE, 1); GR(CE);
     GI(CLK, 1); GR(CLK);
@@ -41,10 +57,16 @@ int axk_ds1302_init(void) {
 static uint8_t bcd2dec(uint8_t b) { return (b >> 4) * 10 + (b & 0x0F); }
 static uint8_t dec2bcd(uint8_t d) { return ((d / 10) << 4) | (d % 10); }
 
+/**
+ * @brief 突发读取 DS1302 当前时间（7 字节）
+ *
+ * @param[out] *t   时间结构体指针
+ * @return     int  0: 成功，-1: 空指针
+ */
 int axk_ds1302_get_time(axk_ds1302_time_t *t) {
     if (!t) return -1;
     GS(CE);
-    rw_byte(0xBF); /* burst read */
+    rw_byte(0xBF);
     uint8_t raw[7];
     for (int i = 0; i < 7; i++) { io_in(); raw[i] = rw_byte(0); }
     GR(CE);
@@ -58,13 +80,19 @@ int axk_ds1302_get_time(axk_ds1302_time_t *t) {
     return 0;
 }
 
+/**
+ * @brief 突发写入 DS1302 时间（先关闭写保护）
+ *
+ * @param[in]  *t   时间结构体指针
+ * @return     int  0: 成功，-1: 空指针
+ */
 int axk_ds1302_set_time(const axk_ds1302_time_t *t) {
     if (!t) return -1;
     GS(CE);
-    rw_byte(0x8E); rw_byte(0x00);  /* 写保护关 */
+    rw_byte(0x8E); rw_byte(0x00);
     GR(CE);
     GS(CE);
-    rw_byte(0xBE); /* burst write */
+    rw_byte(0xBE);
     uint8_t d[] = { dec2bcd(t->sec), dec2bcd(t->min), dec2bcd(t->hour),
                     dec2bcd(t->day), dec2bcd(t->mon), dec2bcd(t->week), dec2bcd(t->year) };
     io_out();
@@ -72,4 +100,4 @@ int axk_ds1302_set_time(const axk_ds1302_time_t *t) {
     GR(CE);
     return 0;
 }
-#endif
+#endif /* SCBB_DS1302_ENABLED */

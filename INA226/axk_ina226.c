@@ -1,23 +1,40 @@
 /**
  * @file axk_ina226.c
- * @brief INA226 — 纯 ACLL I2C 跨平台
+ * @brief INA226 — 纯 ACLL I2C 跨平台实现。
+ * @author xemowo (xemowo@qq.com)
+ * @version 0.1.1
+ * @date 2026-07-31
+ *
+ * @copyright Copyright (c) 2026
  */
 #include "axk_ina226.h"
 
 #ifdef SCBB_INA226_ENABLED
 
-#define I2C_INIT(n,c)  AXK_INA226_I2C_ACLL(init,n,c)
-#define I2C_WR(n,a,d,l) AXK_INA226_I2C_ACLL(write,n,a,d,l)
-#define I2C_RD(n,a,d,l) AXK_INA226_I2C_ACLL(read,n,a,d,l)
-#define DMS(x)          AXK_INA226_DELAY_MS(x)
+#define I2C_INIT(n,c)    AXK_INA226_I2C_ACLL(init,n,c)
+#define I2C_WR(n,a,d,l)  AXK_INA226_I2C_ACLL(write,n,a,d,l)
+#define I2C_RD(n,a,d,l)  AXK_INA226_I2C_ACLL(read,n,a,d,l)
+#define DMS(x)           AXK_INA226_DELAY_MS(x)
 
 enum { REG_CFG=0x00, REG_SV=0x01, REG_BV=0x02, REG_PWR=0x03, REG_CUR=0x04, REG_CAL=0x05 };
 
+/**
+ * @brief 向寄存器写入 16 位值（寄存器地址 + MSB + LSB）
+ *
+ * @param[in]  reg  寄存器地址
+ * @param[in]  val  16 位写入值
+ */
 static void wr16(uint8_t reg, uint16_t val) {
     uint8_t d[3] = { reg, val>>8, val&0xFF };
     I2C_WR(AXK_INA226_I2C, AXK_INA226_ADDR, d, 3);
 }
 
+/**
+ * @brief 读取 16 位寄存器值
+ *
+ * @param[in]  reg      寄存器地址
+ * @return     uint16_t 寄存器值
+ */
 static uint16_t rd16(uint8_t reg) {
     uint8_t d[2];
     I2C_WR(AXK_INA226_I2C, AXK_INA226_ADDR, &reg, 1);
@@ -25,31 +42,46 @@ static uint16_t rd16(uint8_t reg) {
     return (d[0]<<8)|d[1];
 }
 
+/**
+ * @brief 初始化 INA226：I2C 初始化、校准、连续测量模式
+ *
+ * @return int  0: 成功
+ */
 int axk_ina226_init(void) {
     bsp_i2c_cfg_t c = { .freq = 100000 };
     I2C_INIT(AXK_INA226_I2C, &c);
-    /* 校准: Current_LSB = 1mA, Cal = 0.00512/(0.001*0.01) = 512 */
     wr16(REG_CAL, 5120);
-    wr16(REG_CFG, 0x4127); /* avg=1, Vbus=1.1ms, Vsh=1.1ms, mode=shunt+bus continuous */
+    wr16(REG_CFG, 0x4127);
     return 0;
 }
 
-static float sv_to_current(int16_t sv) {
-    return sv * 2.5e-6f / AXK_INA226_SHUNT; /* LSB=2.5uV */
-}
-
+/**
+ * @brief 读取总线电压
+ *
+ * @return float  总线电压（V），LSB=1.25mV
+ */
 float axk_ina226_read_voltage(void) {
     int16_t raw = (int16_t)rd16(REG_BV);
-    return raw * 1.25e-3f; /* LSB=1.25mV */
+    return raw * 1.25e-3f;
 }
 
+/**
+ * @brief 读取负载电流
+ *
+ * @return float  电流（A），LSB=1mA
+ */
 float axk_ina226_read_current(void) {
     int16_t raw = (int16_t)rd16(REG_CUR);
-    return raw * 1e-3f; /* 1mA LSB */
+    return raw * 1e-3f;
 }
 
+/**
+ * @brief 读取功率
+ *
+ * @return float  功率（W），LSB=25mW
+ */
 float axk_ina226_read_power(void) {
     uint16_t raw = rd16(REG_PWR);
-    return raw * 25e-3f; /* 25mW LSB */
+    return raw * 25e-3f;
 }
-#endif
+#endif /* SCBB_INA226_ENABLED */
