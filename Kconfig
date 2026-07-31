@@ -91,36 +91,159 @@ if SCBB_HXD039B2_ENABLED
         default "delay"
 endif
 
-config SCBB_1_47_LCD_ENABLED
-    bool "Enable 1.47_LCD [1.47\" IPS LCD ST7789V 172x320, BL616/BL618]"
+config SCBB_ST7789V_LCD_ENABLED
+    bool "Enable ST7789V_LCD [ST7789V SPI LCD driver, any size]"
     default n
 
-if SCBB_1_47_LCD_ENABLED
-    config SCBB_1_47_LCD_SPI_HEADER
-        string "1.47_LCD - SPI BSP header"
-        default ""
+if SCBB_ST7789V_LCD_ENABLED
+    config SCBB_ST7789V_LCD_SPI_HEADER
+        string "ST7789V_LCD - SPI BSP header"
+        default "bl616_bsp_spi.h"
 
-    config SCBB_1_47_LCD_SPI_PREFIX
-        string "1.47_LCD - SPI BSP function prefix"
-        default ""
+    config SCBB_ST7789V_LCD_SPI_PREFIX
+        string "ST7789V_LCD - SPI BSP function prefix"
+        default "bsp_spi"
 
-    config SCBB_1_47_LCD_GPIO_HEADER
-        string "1.47_LCD - GPIO BSP header"
-        default ""
+    config SCBB_ST7789V_LCD_GPIO_HEADER
+        string "ST7789V_LCD - GPIO BSP header"
+        default "bl616_bsp_gpio.h"
 
-    config SCBB_1_47_LCD_GPIO_PREFIX
-        string "1.47_LCD - GPIO BSP function prefix"
-        default ""
+    config SCBB_ST7789V_LCD_GPIO_PREFIX
+        string "ST7789V_LCD - GPIO BSP function prefix"
+        default "bsp_gpio"
 
-    config SCBB_1_47_LCD_DELAY_HEADER
-        string "1.47_LCD - Delay BSP header"
-        default ""
+    config SCBB_ST7789V_LCD_DELAY_HEADER
+        string "ST7789V_LCD - Delay BSP header"
+        default "bl616_bsp_delay.h"
 
-    config SCBB_1_47_LCD_DELAY_PREFIX
-        string "1.47_LCD - Delay BSP function prefix"
-        default ""
+    config SCBB_ST7789V_LCD_DELAY_PREFIX
+        string "ST7789V_LCD - Delay BSP function prefix"
+        default "bsp_delay"
 endif
 
+config SCBB_RELAY_ENABLED
+    bool "Enable RELAY [GPIO relay, HIGH active]"
+    default n
+
+if SCBB_RELAY_ENABLED
+    config SCBB_RELAY_GPIO_HEADER
+        string "RELAY - GPIO BSP header"
+        default "bl616_bsp_gpio.h"
+
+    config SCBB_RELAY_GPIO_PREFIX
+        string "RELAY - GPIO BSP function prefix"
+        default "bsp_gpio"
+
+    config SCBB_RELAY_DELAY_HEADER
+        string "RELAY - Delay BSP header"
+        default "bl616_bsp_delay.h"
+
+    config SCBB_RELAY_DELAY_PREFIX
+        string "RELAY - Delay BSP function prefix"
+        default "bsp_delay"
+endif
+
+config SCBB_DHT11_ENABLED
+    bool "Enable DHT11 [temperature/humidity sensor, One-Wire]"
+    default n
+
+if SCBB_DHT11_ENABLED
+    config SCBB_DHT11_GPIO_HEADER
+        string "DHT11 - GPIO BSP header"
+        default "bl616_bsp_gpio.h"
+    config SCBB_DHT11_GPIO_PREFIX
+        string "DHT11 - GPIO BSP function prefix"
+        default "bsp_gpio"
+    config SCBB_DHT11_DELAY_HEADER
+        string "DHT11 - Delay BSP header"
+        default "bl616_bsp_delay.h"
+    config SCBB_DHT11_DELAY_PREFIX
+        string "DHT11 - Delay BSP function prefix"
+        default "bsp_delay"
+endif
+
+config SCBB_RD03_V2_ENABLED
+    bool "Enable RD03_V2 [mmWave radar, UART RX only]"
+    default n
+
+if SCBB_RD03_V2_ENABLED
+    config SCBB_RD03_V2_UART_HEADER
+        string "RD03_V2 - UART BSP header"
+        default "bl616_bsp_uart.h"
+    config SCBB_RD03_V2_UART_PREFIX
+        string "RD03_V2 - UART BSP function prefix"
+        default "bsp_uart"
+    config SCBB_RD03_V2_DELAY_HEADER
+        string "RD03_V2 - Delay BSP header"
+        default "bl616_bsp_delay.h"
+    config SCBB_RD03_V2_DELAY_PREFIX
+        string "RD03_V2 - Delay BSP function prefix"
+        default "bsp_delay"
+endif
+
+
+config SCBB_INA226_ENABLED
+    bool "Enable INA226 [I2C voltage/current sensor]"
+    default n
+
+if SCBB_INA226_ENABLED
+    config SCBB_INA226_I2C_HEADER
+        string "INA226 - I2C BSP header"
+        default "bl616_bsp_i2c.h"
+    config SCBB_INA226_I2C_PREFIX
+        string "INA226 - I2C BSP function prefix"
+        default "bsp_i2c"
+    config SCBB_INA226_DELAY_HEADER
+        string "INA226 - Delay BSP header"
+        default "bl616_bsp_delay.h"
+    config SCBB_INA226_DELAY_PREFIX
+        string "INA226 - Delay BSP function prefix"
+        default "bsp_delay"
+endif
+
+config SCBB_DS1302_ENABLED
+    bool "Enable DS1302 [RTC clock, GPIO]"
+    default n
+
+if SCBB_DS1302_ENABLED
+    config SCBB_DS1302_GPIO_HEADER
+        string "DS1302 - GPIO BSP header"
+        default "bl616_bsp_gpio.h"
+    config SCBB_DS1302_GPIO_PREFIX
+        string "DS1302 - GPIO BSP function prefix"
+        default "bsp_gpio"
+    config SCBB_DS1302_DELAY_HEADER
+        string "DS1302 - Delay BSP header"
+        default "bl616_bsp_delay.h"
+    config SCBB_DS1302_DELAY_PREFIX
+        string "DS1302 - Delay BSP function prefix"
+        default "bsp_delay"
+endif
+
+config SCBB_OLED_096_SPI_ENABLED
+    bool "Enable OLED_096_SPI [0.96 SSD1306 OLED 128x64 SPI]"
+    default n
+
+if SCBB_OLED_096_SPI_ENABLED
+    config SCBB_OLED_096_SPI_SPI_HEADER
+        string "OLED_096_SPI - SPI BSP header"
+        default "bl616_bsp_spi.h"
+    config SCBB_OLED_096_SPI_SPI_PREFIX
+        string "OLED_096_SPI - SPI BSP function prefix"
+        default "bsp_spi"
+    config SCBB_OLED_096_SPI_GPIO_HEADER
+        string "OLED_096_SPI - GPIO BSP header"
+        default "bl616_bsp_gpio.h"
+    config SCBB_OLED_096_SPI_GPIO_PREFIX
+        string "OLED_096_SPI - GPIO BSP function prefix"
+        default "bsp_gpio"
+    config SCBB_OLED_096_SPI_DELAY_HEADER
+        string "OLED_096_SPI - Delay BSP header"
+        default "bl616_bsp_delay.h"
+    config SCBB_OLED_096_SPI_DELAY_PREFIX
+        string "OLED_096_SPI - Delay BSP function prefix"
+        default "bsp_delay"
+endif
 menu "Output"
     config SCBB_CONFIG_HEADER_PATH
         string "scbb_config.h output path"
