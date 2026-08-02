@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   build:
-    name: 构建（${{ matrix.os }}）
+    name: 编译验证（${{ matrix.os }}）
     strategy:
       fail-fast: false
       matrix:
@@ -38,25 +38,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             "-DCMAKE_C_FLAGS=${INC}"
 
-      - name: 构建静态库
+      - name: 编译
         run: cmake --build build --config Release
-
-      - name: 打包库与头文件
-        shell: bash
-        run: |
-          mkdir -p package/include
-          cp build/libaipi_scbb.a package/ 2>/dev/null || true
-          cp build/Release/aipi_scbb.lib package/ 2>/dev/null || true
-          cp LICENSE README.md README_zh.md package/
-          cp ./*/axk_*.h package/include/ 2>/dev/null || true
-          cp WS2812/color_mode.h package/include/
-          cp -r BSP package/
-
-      - name: 上传构建产物
-        uses: actions/upload-artifact@v4
-        with:
-          name: aipi-scbb-${{ matrix.os }}
-          path: package/
 
   release:
     name: 创建 GitHub Release
@@ -65,11 +48,6 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
-
-      - name: 下载全部构建产物
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
 
       - name: 确定版本号
         id: version
@@ -81,9 +59,17 @@ jobs:
             echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: 打包全部产物
+      - name: 打包源码
         shell: bash
-        run: tar -czf aipi-scbb-artifacts.tar.gz -C artifacts .
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          ARCHIVE_REF="HEAD"
+          if git rev-parse -q --verify "$TAG" >/dev/null 2>&1; then
+            ARCHIVE_REF="$TAG"
+          fi
+          git archive --format=tar.gz \
+            --prefix="aipi-scbb-${TAG}/" \
+            -o "aipi-scbb-${TAG}.tar.gz" "$ARCHIVE_REF"
 
       - name: 创建/更新 Release
         env:
@@ -91,9 +77,9 @@ jobs:
         run: |
           TAG="${{ steps.version.outputs.tag }}"
           if gh release view "$TAG" --json tagName >/dev/null 2>&1; then
-            gh release upload "$TAG" aipi-scbb-artifacts.tar.gz --clobber
+            gh release upload "$TAG" "aipi-scbb-${TAG}.tar.gz" --clobber
           else
-            gh release create "$TAG" aipi-scbb-artifacts.tar.gz \
+            gh release create "$TAG" "aipi-scbb-${TAG}.tar.gz" \
               --title "AiPi-SCBB $TAG" \
               --generate-notes
           fi
