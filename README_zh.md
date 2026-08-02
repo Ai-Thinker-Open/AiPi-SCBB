@@ -10,6 +10,10 @@ Ai-Thinker 通用外设驱动库，为 I2C、SPI、PWM+DMA、UART、GPIO、单�
 
 内置 BSP：`BSP/Ai-M6x`（BL616/BL618，博流 Bouffalo SDK）和 `BSP/stm32f10x`（STM32 HAL）。
 
+## 项目简介
+
+AiPi-SCBB 是一个平台无关的外设驱动库，为外部器件提供统一的硬件抽象层。本仓库按模块组织：每个模块目录包含独立的驱动（`axk_*.c` / `axk_*.h`），所有硬件操作都通过 `scbb_config.h` 中配置的 BSP 宏完成。支持的器件列表见下方模块表。
+
 ## 支持的模块
 
 | 模块 | 说明 | 协议 | 地址 |
@@ -38,6 +42,19 @@ pip install kconfiglib windows-curses
 
 - CMake 3.15+
 - GCC（或目标平台的任意 C 编译器）
+
+## 快速开始
+
+典型的项目使用流程：
+
+```bash
+pip install kconfiglib windows-curses   # 步骤 1：安装配置工具依赖
+python menuconfig.py                     # 步骤 2：启用模块并生成 scbb_config.h
+cmake -B build                           # 步骤 3：配置构建
+cmake --build build                      # 步骤 4：编译
+```
+
+编译完成后，将生成的 `aipi_scbb` 库链接到你的工程（见[集成到项目](#集成到项目)）。更详细的使用说明见[配置模块](#配置模块)。
 
 ## 配置模块
 
@@ -164,6 +181,27 @@ target_link_libraries(your_app PRIVATE AiPi::SCBB)
 | `log.h` | 日志宏（由你的固件提供） |
 | `FreeRTOS.h` / `task.h` / `timers.h` | FreeRTOS 实时操作系统（可选，部分模块使用） |
 
+## 使用示例
+
+以下示例读取 DHT11 温湿度传感器（需启用 `SCBB_DHT11_ENABLED` 并提供 GPIO + 延时 BSP）：
+
+```c
+#include "axk_dht11.h"
+
+float temp = 0.0f;
+float humi = 0.0f;
+
+int main(void) {
+    int ret = axk_dht11_read(&temp, &humi);
+    if (ret == 0) {
+        /* temp 和 humi 现在包含有效读数 */
+    }
+    return ret;
+}
+```
+
+每个模块头文件（`axk_*.h`）都说明了 API 及其返回值，更多使用示例可参考对应头文件。
+
 ## 更新代码
 
 ```bash
@@ -196,6 +234,30 @@ AiPi-SCBB/
 ├── CMakeLists.txt    # CMake 构建文件
 └── scbb_config.h     # 由 menuconfig 自动生成（git 忽略）
 ```
+
+## FAQ
+
+**Q：没有生成 `scbb_config.h`？**
+A：运行 `python menuconfig.py`，按 `S` 保存后再按 `Q` 退出。CMake 会在配置阶段读取该文件。
+
+**Q：编译器找不到 `bl616_bsp_*.h` / `stm32f10x_bsp_*.h`？**
+A：将对应的 BSP 协议目录（`BSP/<平台>/<协议>`）加入头文件搜索路径；或在 CMake 中启用 `SCBB_USE_BSP`，路径会自动添加。
+
+**Q：如何把本库移植到新的 MCU？**
+A：实现模块头文件声明的 BSP 函数（GPIO、I2C、SPI、UART、延时、PWM+DMA），并通过 menuconfig 把模块的 BSP 头文件/前缀指向你的实现。
+
+其他问题排查：请提交 GitHub Issue，并注明模块名称、目标平台和编译错误日志。
+
+## 贡献指南
+
+欢迎任何形式的贡献！请：
+
+1. Fork 本仓库并创建功能分支。
+2. 遵循 Ai-Thinker C 编码规范（见 `AGENTS.md`）——`axk_` 前缀、Doxygen 注释、统一格式。
+3. 新增驱动时同步更新模块表和 README。
+4. 提交 Pull Request，并在描述中说明改动内容。
+
+Bug 报告和功能建议也可以直接提交 GitHub Issue。
 
 ## 许可证
 
