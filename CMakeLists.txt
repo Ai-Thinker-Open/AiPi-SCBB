@@ -193,6 +193,7 @@ if(SCBB_RELAY_ENABLED)
     if(SCBB_IS_TOP_LEVEL)
         message(STATUS "AiPi-SCBB: RELAY enabled (GPIO)")
     endif()
+endif()
 
 # DHT11 module
 if(SCBB_DHT11_ENABLED)
@@ -201,6 +202,7 @@ if(SCBB_DHT11_ENABLED)
     if(SCBB_IS_TOP_LEVEL)
         message(STATUS "AiPi-SCBB: DHT11 enabled (GPIO)")
     endif()
+endif()
 
 # DS1302 module
 if(SCBB_DS1302_ENABLED)
@@ -209,6 +211,7 @@ if(SCBB_DS1302_ENABLED)
     if(SCBB_IS_TOP_LEVEL)
         message(STATUS "AiPi-SCBB: DS1302 enabled (GPIO)")
     endif()
+endif()
 
 # INA226 module
 if(SCBB_INA226_ENABLED)
@@ -217,7 +220,6 @@ if(SCBB_INA226_ENABLED)
     if(SCBB_IS_TOP_LEVEL)
         message(STATUS "AiPi-SCBB: INA226 enabled (I2C)")
     endif()
-endif()
 endif()
 
 # OLED_096_SPI module
@@ -236,8 +238,6 @@ if(SCBB_RD03_V2_ENABLED)
     if(SCBB_IS_TOP_LEVEL)
         message(STATUS "AiPi-SCBB: RD03_V2 enabled (UART)")
     endif()
-endif()
-endif()
 endif()
 
 # ─── Include built-in BSP if enabled ──────────────────────────────
@@ -344,6 +344,14 @@ if(SCBB_SOURCES)
 
     # Link built-in BSP libraries
     if(SCBB_USE_BSP)
+        # Add built-in BSP protocol directories to the include path so
+        # module code can resolve bl616_bsp_*.h / stm32f10x_bsp_*.h
+        # without manual -I flags.
+        foreach(dir ${SCBB_BSP_DIRS})
+            target_include_directories(aipi_scbb PUBLIC
+                ${CMAKE_CURRENT_SOURCE_DIR}/BSP/${SCBB_BSP_PLATFORM}/${dir})
+        endforeach()
+
         if(SCBB_CH224A_ENABLED OR SCBB_SHT3X_ENABLED OR SCBB_HXD039B2_ENABLED)
             if(TARGET aipi_bsp_i2c)
                 target_link_libraries(aipi_scbb PUBLIC aipi_bsp_i2c)
