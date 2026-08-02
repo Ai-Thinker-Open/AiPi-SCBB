@@ -12,7 +12,7 @@ from pathlib import Path
 
 def parse_config(config_path):
     result = {}
-    with open(config_path, "r") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):

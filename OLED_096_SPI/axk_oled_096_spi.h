@@ -32,7 +32,7 @@
 #include <stdbool.h>
 
 #define AXK_OLED_096_SPI_W  128  /**< 显示宽度（像素） */
-#define AXK_OLED_096_SPI_H  64   /**< 显示高度（像素） */
+#define AXK_OLED_096_SPI_HEIGHT  64   /**< 显示高度（像素） */
 
 #ifndef AXK_OLED_096_SPI_PIN_SCL
 #define AXK_OLED_096_SPI_PIN_SCL  13  /**< SPI 时钟脚 */

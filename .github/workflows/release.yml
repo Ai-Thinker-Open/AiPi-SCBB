@@ -1,0 +1,99 @@
+name: 构建发布版本
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '要发布的版本号（如 v0.1.1）'
+        required: true
+        default: 'v0.1.1'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: 构建（${{ matrix.os }}）
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 生成 scbb_config.h（启用可移植模块）
+        run: python scripts/gen_config_header.py scripts/release.config scbb_config.h
+
+      - name: 配置 CMake
+        shell: bash
+        run: |
+          INC="-I${GITHUB_WORKSPACE}/BSP/Ai-M6x/gpio -I${GITHUB_WORKSPACE}/BSP/Ai-M6x/i2c -I${GITHUB_WORKSPACE}/BSP/Ai-M6x/spi -I${GITHUB_WORKSPACE}/BSP/Ai-M6x/uart -I${GITHUB_WORKSPACE}/BSP/Ai-M6x/delay"
+          cmake -S . -B build \
+            -DSCBB_CONFIG_HEADER_PATH=scbb_config.h \
+            -DCMAKE_BUILD_TYPE=Release \
+            "-DCMAKE_C_FLAGS=${INC}"
+
+      - name: 构建静态库
+        run: cmake --build build --config Release
+
+      - name: 打包库与头文件
+        shell: bash
+        run: |
+          mkdir -p package/include
+          cp build/libaipi_scbb.a package/ 2>/dev/null || true
+          cp build/Release/aipi_scbb.lib package/ 2>/dev/null || true
+          cp LICENSE README.md README_zh.md package/
+          cp ./*/axk_*.h package/include/ 2>/dev/null || true
+          cp WS2812/color_mode.h package/include/
+          cp -r BSP package/
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: aipi-scbb-${{ matrix.os }}
+          path: package/
+
+  release:
+    name: 创建 GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 下载全部构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: 确定版本号
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 打包全部产物
+        shell: bash
+        run: tar -czf aipi-scbb-artifacts.tar.gz -C artifacts .
+
+      - name: 创建/更新 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if gh release view "$TAG" --json tagName >/dev/null 2>&1; then
+            gh release upload "$TAG" aipi-scbb-artifacts.tar.gz --clobber
+          else
+            gh release create "$TAG" aipi-scbb-artifacts.tar.gz \
+              --title "AiPi-SCBB $TAG" \
+              --generate-notes
+          fi
