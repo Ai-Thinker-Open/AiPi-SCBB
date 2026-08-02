@@ -12,8 +12,8 @@
  *
  * @copyright Copyright (c) 2026
  */
-#ifndef _AXK_INA226_H_
-#define _AXK_INA226_H_
+#ifndef AXK_INA226_H
+#define AXK_INA226_H
 
 #include "scbb_config.h"
 
@@ -72,4 +72,4 @@ float axk_ina226_read_current(void);
 float axk_ina226_read_power(void);
 
 #endif /* SCBB_INA226_ENABLED */
-#endif /* _AXK_INA226_H_ */
+#endif /* AXK_INA226_H */

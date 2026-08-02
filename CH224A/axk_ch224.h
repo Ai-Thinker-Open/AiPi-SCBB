@@ -10,8 +10,8 @@
  * @date 2026-01-26
  * @copyright Copyright (c) 2026
  */
-#ifndef _AXK_CH224_H_
-#define _AXK_CH224_H_
+#ifndef AXK_CH224_H
+#define AXK_CH224_H
 
 #include "scbb_config.h"
 
@@ -139,4 +139,4 @@ int axk_ch224_set_pps_vout(float PPS_VOUT);
 int axk_ch224_set_avs_vout(float AVS_VOUT);
 
 #endif /* SCBB_CH224A_ENABLED */
-#endif /* _AXK_CH224_H_ */
+#endif /* AXK_CH224_H */

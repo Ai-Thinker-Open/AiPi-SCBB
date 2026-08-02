@@ -132,13 +132,13 @@ endif()
 
 ## 协议通道
 
-| 协议 | 宏后缀 | BSP 头文件 |
-|------|--------|------------|
-| I2C | `_I2C_ACLL` | `stm32f10x_bsp_i2c.h` |
-| UART | `_UART_ACLL` | `stm32f10x_bsp_uart.h` |
-| SPI | `_SPI_ACLL` | `stm32f10x_bsp_spi.h` |
-| PWM+DMA | `_PWM_DMA_ACLL` | `stm32f10x_pwm_dma.h` |
-| GPIO | `_GPIO_ACLL` | `stm32f10x_bsp_gpio.h` |
+| 协议 | 宏后缀 | BSP 头文件（stm32f10x / Ai-M6x） |
+|------|--------|---------------------------------|
+| I2C | `_I2C_ACLL` | `stm32f10x_bsp_i2c.h` / `bl616_bsp_i2c.h` |
+| UART | `_UART_ACLL` | `stm32f10x_bsp_uart.h` / `bl616_bsp_uart.h` |
+| SPI | `_SPI_ACLL` | `stm32f10x_bsp_spi.h` / `bl616_bsp_spi.h` |
+| PWM+DMA | `_PWM_DMA_ACLL` | `stm32f10x_pwm_dma.h`（仅 stm32f10x） |
+| GPIO | `_GPIO_ACLL` | `stm32f10x_bsp_gpio.h` / `bl616_bsp_gpio.h` |
 
 ## 编码规范
 

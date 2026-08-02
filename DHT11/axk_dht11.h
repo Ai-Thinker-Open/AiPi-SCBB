@@ -10,8 +10,8 @@
  *
  * @copyright Copyright (c) 2026
  */
-#ifndef _AXK_DHT11_H_
-#define _AXK_DHT11_H_
+#ifndef AXK_DHT11_H
+#define AXK_DHT11_H
 
 #include "scbb_config.h"
 
@@ -51,4 +51,4 @@
 int  axk_dht11_read(float *temp, float *humi);
 
 #endif /* SCBB_DHT11_ENABLED */
-#endif /* _AXK_DHT11_H_ */
+#endif /* AXK_DHT11_H */

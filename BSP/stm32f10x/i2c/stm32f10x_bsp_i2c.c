@@ -26,6 +26,9 @@ void bsp_i2c_init(void) {
   HAL_GPIO_Init(BSP_I2C_PORT, &GPIO_InitStructure); // HAL库GPIO初始化函数
 }
 /**
+ * @brief 初始化 I2C 总线（PB6=SDA，PB7=SCL，推挽输出）
+ */
+/**
  * @brief 发送I2C起始信号
  *
  */
@@ -58,7 +61,7 @@ void bsp_i2c_stop(void) {
 /**
  * @brief 发送应答信号
  *
- * @param ack 应答
+ * @param[in]  ack  应答电平（0: ACK，1: NACK）
  */
 void bsp_i2c_send_ack(u8 ack) {
   SDA_OUT();
@@ -102,7 +105,7 @@ u8 bsp_i2c_wait_ack(void) {
 /**
  * @brief 发送I2C字节数据
  *
- * @param _dat 字节数据
+ * @param[in]  _dat  待发送的字节
  */
 void bsp_i2c_send_byte(u8 _dat) {
   u8 i = 0;

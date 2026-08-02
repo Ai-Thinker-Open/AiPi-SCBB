@@ -11,8 +11,8 @@
  * @date 2026-01-30
  * @copyright Copyright (c) 2026
  */
-#ifndef __AXK_WS2812_H__
-#define __AXK_WS2812_H__
+#ifndef AXK_WS2812_H
+#define AXK_WS2812_H
 #include "color_mode.h"
 #include "scbb_config.h"
 
@@ -22,14 +22,17 @@
 #include SCBB_WS2812_PWM_DMA_HEADER
 #endif
 
+/** @brief WS2812 灯珠数量上限 */
+#define AXK_WS2812_MAX_NUM 60
+
 /** @brief 单颗 LED 设备，存储 RGB 颜色 */
 typedef struct {
-  color_t color;
+  axk_color_t color;
 } axk_ws2812_dev_t;
 
 /** @brief LED 灯条实例，设备数组 + 数量 + 亮度 */
 typedef struct {
-  axk_ws2812_dev_t *dev; /**< LED 设备数组（由 malloc 分配） */
+  axk_ws2812_dev_t *dev; /**< LED 设备数组（为 NULL 时使用模块静态缓冲） */
   unsigned int led_count; /**< LED 数量 */
   float brightness;       /**< 全局亮度系数（0.0–1.0） */
 } axk_ws2812_strip_t;
@@ -120,4 +123,4 @@ void axk_ws2812_set_led_count(uint8_t count);
 unsigned char axk_ws2812_get_led_count(void);
 
 #endif /* SCBB_WS2812_ENABLED */
-#endif /* __AXK_WS2812_H__ */
+#endif /* AXK_WS2812_H */

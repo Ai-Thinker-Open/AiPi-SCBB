@@ -11,14 +11,10 @@
 
 #ifdef SCBB_DHT11_ENABLED
 
-#define GI(p,m)  AXK_DHT11_GPIO_ACLL(init, p, m)
-#define GS(p)    AXK_DHT11_GPIO_ACLL(set, p)
-#define GR(p)    AXK_DHT11_GPIO_ACLL(reset, p)
-#define GRD(p)   AXK_DHT11_GPIO_ACLL(read, p)
-#define DMS(x)   AXK_DHT11_DELAY_MS(x)
-#define DUS(x)   AXK_DHT11_DELAY_US(x)
-
-#define PIN AXK_DHT11_PIN
+#define AXK_DHT11_GPIO_INIT(p,m)  AXK_DHT11_GPIO_ACLL(init, p, m)
+#define AXK_DHT11_GPIO_SET(p)    AXK_DHT11_GPIO_ACLL(set, p)
+#define AXK_DHT11_GPIO_RESET(p)    AXK_DHT11_GPIO_ACLL(reset, p)
+#define AXK_DHT11_GPIO_READ(p)   AXK_DHT11_GPIO_ACLL(read, p)
 
 static uint8_t s_axk_dht11_data[5];
 
@@ -29,11 +25,13 @@ static uint8_t s_axk_dht11_data[5];
  * @param[in]  timeout_us  超时时间（微秒）
  * @return     int         0: 达到目标电平，-1: 超时
  */
-static int wait_level(int level, uint32_t timeout_us) {
+static int axk_dht11_wait_level(int level, uint32_t timeout_us) {
     uint32_t t = 0;
-    while (GRD(PIN) != level) {
-        if (++t > timeout_us) return -1;
-        DUS(1);
+    while (AXK_DHT11_GPIO_READ(AXK_DHT11_PIN) != level) {
+        if (++t > timeout_us) {
+            return -1;
+        }
+        AXK_DHT11_DELAY_US(1);
     }
     return 0;
 }
@@ -54,24 +52,38 @@ static int wait_level(int level, uint32_t timeout_us) {
  *              - -7: 校验和不匹配
  */
 int axk_dht11_read(float *temp, float *humi) {
-    if (!temp || !humi) return -1;
+    if (!temp || !humi) {
+        return -1;
+    }
 
-    GI(PIN, 1);
-    GR(PIN); DMS(18);
-    GS(PIN); DUS(30);
-    GI(PIN, 0);
+    AXK_DHT11_GPIO_INIT(AXK_DHT11_PIN, 1);
+    AXK_DHT11_GPIO_RESET(AXK_DHT11_PIN); AXK_DHT11_DELAY_MS(18);
+    AXK_DHT11_GPIO_SET(AXK_DHT11_PIN); AXK_DHT11_DELAY_US(30);
+    AXK_DHT11_GPIO_INIT(AXK_DHT11_PIN, 0);
 
-    if (wait_level(0, 100) < 0) return -2;
-    if (wait_level(1, 100) < 0) return -3;
-    if (wait_level(0, 100) < 0) return -4;
+    if (axk_dht11_wait_level(0, 100) < 0) {
+        return -2;
+    }
+    if (axk_dht11_wait_level(1, 100) < 0) {
+        return -3;
+    }
+    if (axk_dht11_wait_level(0, 100) < 0) {
+        return -4;
+    }
 
     for (int i = 0; i < 5; i++) {
         uint8_t v = 0;
         for (int b = 7; b >= 0; b--) {
-            if (wait_level(1, 100) < 0) return -5;
-            DUS(30);
-            if (GRD(PIN)) v |= (1 << b);
-            if (wait_level(0, 100) < 0) return -6;
+            if (axk_dht11_wait_level(1, 100) < 0) {
+                return -5;
+            }
+            AXK_DHT11_DELAY_US(30);
+            if (AXK_DHT11_GPIO_READ(AXK_DHT11_PIN)) {
+                v |= (1u << b);
+            }
+            if (axk_dht11_wait_level(0, 100) < 0) {
+                return -6;
+            }
         }
         s_axk_dht11_data[i] = v;
     }

@@ -11,8 +11,8 @@
  *
  * @copyright Copyright (c) 2026
  */
-#ifndef _AXK_DS1302_H_
-#define _AXK_DS1302_H_
+#ifndef AXK_DS1302_H
+#define AXK_DS1302_H
 
 #include "scbb_config.h"
 
@@ -76,4 +76,4 @@ int  axk_ds1302_get_time(axk_ds1302_time_t *t);
 int  axk_ds1302_set_time(const axk_ds1302_time_t *t);
 
 #endif /* SCBB_DS1302_ENABLED */
-#endif /* _AXK_DS1302_H_ */
+#endif /* AXK_DS1302_H */

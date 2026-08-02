@@ -2,7 +2,7 @@
 
 ## What this is
 
-Peripheral driver library for **STM32F10x** (ARM Cortex-M3, HAL-based). Provides hardware abstraction for external components over I2C, PWM+DMA, and UART. Depends on **FreeRTOS** and **STM32 HAL** (`stm32f1xx_hal.h`). This is a **library**, not a complete firmware — there is no linker script or `main()` here.
+Multi-platform peripheral driver library with a configurable BSP (Board Support Package) abstraction. Built-in BSPs: **Ai-M6x** (Bouffalo BL616/BL618, bflb SDK) and **STM32F10x** (ARM Cortex-M3, HAL-based). Provides hardware abstraction for external components over I2C, SPI, PWM+DMA, UART, and GPIO. Depends on **FreeRTOS** and the platform SDK/HAL (e.g. `stm32f1xx_hal.h`). This is a **library**, not a complete firmware — there is no linker script or `main()` here.
 
 ## 环境准备（Windows）
 
@@ -46,8 +46,8 @@ make menuconfig
 
 ### 方法 2: 手动编辑配置文件
 
-1. 复制 `scbb_config_template.h` 为 `scbb_config.h`
-2. 取消注释需要的模块 `#define`
+1. 在项目根目录创建 `scbb_config.h`（或先运行 `python menuconfig.py` 生成）
+2. 添加需要的模块 `#define`
 3. 重新编译
 
 ### 方法 3: CMake -D 参数
@@ -61,7 +61,8 @@ cmake --build build
 
 | 选项 | 默认 | 说明 |
 |------|------|------|
-| `SCBB_USE_BSP` | OFF | 使用内置 STM32F10x BSP |
+| `SCBB_USE_BSP` | OFF | 使用内置 BSP（配合 `SCBB_BSP_PLATFORM` 选择平台） |
+| `SCBB_BSP_PLATFORM` | `Ai-M6x` | 内置 BSP 平台（`Ai-M6x` / `stm32f10x`） |
 | `SCBB_CH224A` | OFF | USB-PD 驱动 (I2C) |
 | `SCBB_SHT3X` | OFF | 温湿度传感器 (I2C) |
 | `SCBB_WS2812` | OFF | LED 灯条驱动 (PWM+DMA) |
@@ -77,15 +78,23 @@ cmake --build build
 |-----------|---------|----------|
 | `CH224A/` | USB-PD sink controller (voltage negotiation: 5–28V, PPS, AVS) | I2C (0x22) |
 | `SHT3x/` | Temperature & humidity sensor | I2C (0x44) |
+| `INA226/` | Voltage/current/power monitor | I2C (0x40) |
 | `WS2812/` | Addressable RGB LED strip driver + HSV/RGB color utilities | PWM+DMA (TIM1 CH4) |
 | `HXD039B2/` | IR encoder/decoder (AC remote control) | UART |
-| `STM32F10x_bsp/` | Board Support Package: I2C, PWM+DMA, UART, GPIO, delay | — |
+| `DHT11/` | Temperature & humidity sensor (One-Wire) | GPIO |
+| `DS1302/` | RTC real-time clock (3-wire bit-bang) | GPIO |
+| `RELAY/` | Relay driver (high-level active) | GPIO |
+| `RD03_V2/` | mmWave radar presence & distance sensor | UART |
+| `OLED_096_SPI/` | 0.96" OLED display (SSD1306, 128x64) | SPI |
+| `ST7789V_LCD/` | ST7789V SPI LCD driver | SPI |
+| `BSP/Ai-M6x/` | Bouffalo BL616/BL618 BSP: I2C, SPI, UART, GPIO, LCD, delay | — |
+| `BSP/stm32f10x/` | STM32F10x BSP: I2C, SPI, UART, GPIO, PWM+DMA, delay | — |
 
-BSP sub-directories: `i2c/` (bit-banged I2C), `pwm_dma/` (WS2812 DMA driver), `uart/` (UART), `gpio/` (GPIO), `delay/` (us/ms delay via `HAL_Delay_us`/`HAL_Delay`).
+Each platform lives under `BSP/<platform>/<protocol>/`. Protocol sub-directories: `i2c/`, `spi/`, `uart/`, `gpio/`, `pwm_dma/` (WS2812 DMA driver), `delay/` (us/ms delay), plus platform extras such as `BSP/Ai-M6x/lcd/` and `BSP/Ai-M6x/freertos/`.
 
 ## I2C abstraction pattern
 
-All I2C modules use `__has_include` to require `stm32f10x_bsp_i2c.h`. Each module defines its own call macro:
+All I2C modules include the platform BSP header via a macro from `scbb_config.h` (e.g. `SCBB_CH224A_I2C_HEADER` → `stm32f10x_bsp_i2c.h` or `bl616_bsp_i2c.h`). Each module defines its own call macro:
 
 ```c
 // Pattern used by CH224A and SHT3x:
@@ -94,7 +103,7 @@ All I2C modules use `__has_include` to require `stm32f10x_bsp_i2c.h`. Each modul
 
 This token-pasting macro expands `bsp_i2c_start()`, `bsp_i2c_send_byte()`, etc. **Do not call BSP functions directly** from module code — always go through the macro.
 
-BSP I2C API (bit-banged on PB6=SDA, PB7=SCL):
+BSP I2C API (STM32 bit-bang on PB6=SDA, PB7=SCL):
 - `bsp_i2c_init`, `bsp_i2c_start`, `bsp_i2c_stop`
 - `bsp_i2c_send_byte`, `bsp_i2c_read_byte`
 - `bsp_i2c_wait_ack`, `bsp_i2c_send_ack`
@@ -105,7 +114,7 @@ WS2812 uses a similar macro abstraction: `AXK_WS2812_ACLL(_func, ...)` → `bsp_
 
 LED strip state is held in a global `axk_ws2812_strip_dev` pointer. Call `axk_ws2812_init()` with a stack-allocated `axk_ws2812_strip_t` before using any LED functions. Brightness is applied as an HSV `v` channel multiplier, not direct RGB scaling.
 
-Note: `axk_ws2812.h` forward-declares `bsp_pwm_dma_deinit()` even though it lives in `stm32f10x_pwm_dma.c`. This cross-module extern is intentional.
+Note: `axk_ws2812.h` forward-declares `bsp_pwm_dma_deinit()` even though it lives in `BSP/stm32f10x/pwm_dma/stm32f10x_pwm_dma.c`. This cross-module extern is intentional.
 
 ## UART pattern (HXD039B2)
 
@@ -115,13 +124,13 @@ HXD039B2 uses UART protocol: `AXK_HXD039B2_UART_ACLL(_func, ...) bsp_uart_##_fun
 
 - Module prefix: `axk_` (e.g. `axk_ch224_init`, `axk_sht3x_read`, `axk_ws2812_set_pixel_color`)
 - BSP prefix: `bsp_` (e.g. `bsp_i2c_start`, `bsp_pwm_dma_init`)
-- Color types: `color_t` (RGB), `hsv_color_t` (HSV) — defined in `WS2812/color_mode.h`
-- Header guards are inconsistent: `__AXK_SHT3X_H__` (double), `_AXK_CH224_H_` (single), `COLOR_MODE_H` (none). BSP uses double-underscore. Match the file you're editing.
+- Color types: `axk_color_t` (RGB), `axk_hsv_color_t` (HSV) — defined in `WS2812/color_mode.h`
+- Header guards: 模块使用 `AXK_XXX_H`（如 `AXK_CH224_H`），BSP 使用 `BL616_BSP_XXX_H` / `STM32F10X_BSP_XXX_H`。新建头文件按此规范
 
 ## Adding a new I2C peripheral
 
 1. Create `ModuleName/axk_module.h` and `.c`
-2. Add `#if __has_include("stm32f10x_bsp_i2c.h")` guard and `AXK_MODULE_I2C_ACLL` macro
+2. Add the BSP header include guard (`#ifdef SCBB_<MODULE>_I2C_HEADER` → `#include SCBB_<MODULE>_I2C_HEADER`) and `AXK_MODULE_I2C_ACLL` macro
 3. Use `bsp_i2c_*` functions through the macro — never call them directly
 4. Follow the I2C transaction pattern: start → send addr+write → wait_ack → send reg → wait_ack → restart → send addr+read → read bytes → NACK → stop
 
@@ -135,9 +144,9 @@ HXD039B2 uses UART protocol: `AXK_HXD039B2_UART_ACLL(_func, ...) bsp_uart_##_fun
 ## Gotchas
 
 - WS2812 data order is **GRB**, not RGB — the `convert_rgb_to_ws2812_data` function handles the swap
-- WS2812 max LED count is hardcoded to `60` (`WS2812_MAX_NUM`)
+- WS2812 max LED count is `60` — 模块层 `AXK_WS2812_MAX_NUM`，BSP 层 `WS2812_MAX_NUM`
 - SHT3x CRC uses polynomial `0x31` — do not change without checking the datasheet
 - CH224 PPS/AVS voltage encoding uses `value * 10` as a byte — precision is 0.1V steps
 - `color_mode.c` includes FreeRTOS headers (`task.h`, `timers.h`) even though it's a pure math module — this is a coupling you'll need to work around if porting
-- `axk_ws2812_init` mallocs `dev` array based on `led_count`; no bounds check against `WS2812_MAX_NUM` at the module level (BSP clamps in `bsp_pwm_dma_with_num`)
+- `axk_ws2812_init` 校验 `led_count <= AXK_WS2812_MAX_NUM`；`dev` 为 NULL 时使用模块静态缓冲（不动态分配）
 - CH224A header guard `_AXK_CH224_H_` differs from SHT3x/WS2812 — don't normalize guards across modules without checking include paths

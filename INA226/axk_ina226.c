@@ -11,35 +11,52 @@
 
 #ifdef SCBB_INA226_ENABLED
 
-#define I2C_INIT(n,c)    AXK_INA226_I2C_ACLL(init,n,c)
-#define I2C_WR(n,a,d,l)  AXK_INA226_I2C_ACLL(write,n,a,d,l)
-#define I2C_RD(n,a,d,l)  AXK_INA226_I2C_ACLL(read,n,a,d,l)
-#define DMS(x)           AXK_INA226_DELAY_MS(x)
+#define AXK_INA226_I2C_INIT(n,c)    AXK_INA226_I2C_ACLL(init,n,c)
+#define AXK_INA226_I2C_WR(n,a,d,l)  AXK_INA226_I2C_ACLL(write,n,a,d,l)
+#define AXK_INA226_I2C_RD(n,a,d,l)  AXK_INA226_I2C_ACLL(read,n,a,d,l)
 
-enum { REG_CFG=0x00, REG_SV=0x01, REG_BV=0x02, REG_PWR=0x03, REG_CUR=0x04, REG_CAL=0x05 };
+/** @brief INA226 寄存器地址 */
+enum {
+    AXK_INA226_REG_CFG = 0x00,   /**< 配置寄存器 */
+    AXK_INA226_REG_SV  = 0x01,   /**< 分流电压寄存器 */
+    AXK_INA226_REG_BV  = 0x02,   /**< 总线电压寄存器 */
+    AXK_INA226_REG_PWR = 0x03,   /**< 功率寄存器 */
+    AXK_INA226_REG_CUR = 0x04,   /**< 电流寄存器 */
+    AXK_INA226_REG_CAL = 0x05,   /**< 校准寄存器 */
+};
+
+/** @brief 校准寄存器值（Current_LSB = 1mA，10mΩ 采样电阻） */
+#define AXK_INA226_CAL_VALUE 5120
+/** @brief 配置寄存器值（连续测量，1.1ms 转换时间） */
+#define AXK_INA226_CFG_CONTINUOUS 0x4127
 
 /**
  * @brief 向寄存器写入 16 位值（寄存器地址 + MSB + LSB）
  *
  * @param[in]  reg  寄存器地址
  * @param[in]  val  16 位写入值
+ * @return     int  操作状态
+ *              - 0: 写入成功
+ *              - 其他: 传输失败
  */
-static void wr16(uint8_t reg, uint16_t val) {
-    uint8_t d[3] = { reg, val>>8, val&0xFF };
-    I2C_WR(AXK_INA226_I2C, AXK_INA226_ADDR, d, 3);
+static int axk_ina226_wr16(uint8_t reg, uint16_t val) {
+    uint8_t d[3] = {reg, (uint8_t)(val >> 8), (uint8_t)(val & 0xFF)};
+    return AXK_INA226_I2C_WR(AXK_INA226_I2C, AXK_INA226_ADDR, d, 3);
 }
 
 /**
  * @brief 读取 16 位寄存器值
  *
  * @param[in]  reg      寄存器地址
- * @return     uint16_t 寄存器值
+ * @return     uint16_t 寄存器值（总线错误时返回 0）
  */
-static uint16_t rd16(uint8_t reg) {
-    uint8_t d[2];
-    I2C_WR(AXK_INA226_I2C, AXK_INA226_ADDR, &reg, 1);
-    I2C_RD(AXK_INA226_I2C, AXK_INA226_ADDR, d, 2);
-    return (d[0]<<8)|d[1];
+static uint16_t axk_ina226_rd16(uint8_t reg) {
+    uint8_t d[2] = {0, 0};
+    if (AXK_INA226_I2C_WR(AXK_INA226_I2C, AXK_INA226_ADDR, &reg, 1) != 0) {
+        return 0;
+    }
+    AXK_INA226_I2C_RD(AXK_INA226_I2C, AXK_INA226_ADDR, d, 2);
+    return (uint16_t)((d[0] << 8) | d[1]);
 }
 
 /**
@@ -49,9 +66,13 @@ static uint16_t rd16(uint8_t reg) {
  */
 int axk_ina226_init(void) {
     bsp_i2c_cfg_t c = { .freq = 100000 };
-    I2C_INIT(AXK_INA226_I2C, &c);
-    wr16(REG_CAL, 5120);
-    wr16(REG_CFG, 0x4127);
+    if (AXK_INA226_I2C_INIT(AXK_INA226_I2C, &c) != 0) {
+        return -1;
+    }
+    if (axk_ina226_wr16(AXK_INA226_REG_CAL, AXK_INA226_CAL_VALUE) != 0 ||
+        axk_ina226_wr16(AXK_INA226_REG_CFG, AXK_INA226_CFG_CONTINUOUS) != 0) {
+        return -2;
+    }
     return 0;
 }
 
@@ -61,7 +82,7 @@ int axk_ina226_init(void) {
  * @return float  总线电压（V），LSB=1.25mV
  */
 float axk_ina226_read_voltage(void) {
-    int16_t raw = (int16_t)rd16(REG_BV);
+    int16_t raw = (int16_t)axk_ina226_rd16(AXK_INA226_REG_BV);
     return raw * 1.25e-3f;
 }
 
@@ -71,7 +92,7 @@ float axk_ina226_read_voltage(void) {
  * @return float  电流（A），LSB=1mA
  */
 float axk_ina226_read_current(void) {
-    int16_t raw = (int16_t)rd16(REG_CUR);
+    int16_t raw = (int16_t)axk_ina226_rd16(AXK_INA226_REG_CUR);
     return raw * 1e-3f;
 }
 
@@ -81,7 +102,7 @@ float axk_ina226_read_current(void) {
  * @return float  功率（W），LSB=25mW
  */
 float axk_ina226_read_power(void) {
-    uint16_t raw = rd16(REG_PWR);
+    uint16_t raw = axk_ina226_rd16(AXK_INA226_REG_PWR);
     return raw * 25e-3f;
 }
 #endif /* SCBB_INA226_ENABLED */

@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2026
  *
  */
-#ifndef __STM32F10X_BSP_I2C_H__
-#define __STM32F10X_BSP_I2C_H__
+#ifndef STM32F10X_BSP_I2C_H
+#define STM32F10X_BSP_I2C_H
 #include "stm32f10x_delay.h"
 #include "log.h"
 #define u8 unsigned char
@@ -56,10 +56,44 @@
   HAL_GPIO_WritePin(BSP_I2C_PORT, GPIO_SCL, (x ? GPIO_PIN_SET : GPIO_PIN_RESET))
 
 void bsp_i2c_init(void);
+
+/**
+ * @brief 发送 I2C 起始信号
+ */
 void bsp_i2c_start(void);
+
+/**
+ * @brief 发送 I2C 停止信号
+ */
 void bsp_i2c_stop(void);
+
+/**
+ * @brief 发送应答信号
+ *
+ * @param[in]  ack  应答电平（0: ACK，1: NACK）
+ */
 void bsp_i2c_send_ack(u8 ack);
+
+/**
+ * @brief 等待从设备应答
+ *
+ * @return u8  应答结果
+ *              - 0: 收到 ACK
+ *              - 1: 未收到 ACK（超时）
+ */
 u8 bsp_i2c_wait_ack(void);
+
+/**
+ * @brief 发送一个字节
+ *
+ * @param[in]  _dat  待发送的字节
+ */
 void bsp_i2c_send_byte(u8 _dat);
+
+/**
+ * @brief 接收一个字节
+ *
+ * @return u8  接收到的字节
+ */
 u8 bsp_i2c_read_byte(void);
-#endif /* __STM32F10X_BSP_I2C_H__ */
+#endif /* STM32F10X_BSP_I2C_H */

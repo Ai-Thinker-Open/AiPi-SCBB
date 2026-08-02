@@ -11,8 +11,8 @@
  *
  * @copyright Copyright (c) 2026
  */
-#ifndef _AXK_RD03_V2_H_
-#define _AXK_RD03_V2_H_
+#ifndef AXK_RD03_V2_H
+#define AXK_RD03_V2_H
 
 #include "scbb_config.h"
 
@@ -52,4 +52,4 @@ int  axk_rd03_v2_init(void);
 int  axk_rd03_v2_read(int *distance);
 
 #endif /* SCBB_RD03_V2_ENABLED */
-#endif /* _AXK_RD03_V2_H_ */
+#endif /* AXK_RD03_V2_H */

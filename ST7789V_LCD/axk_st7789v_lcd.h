@@ -15,8 +15,8 @@
  *
  * @copyright Copyright (c) 2026
  */
-#ifndef _AXK_ST7789V_LCD_H_
-#define _AXK_ST7789V_LCD_H_
+#ifndef AXK_ST7789V_LCD_H
+#define AXK_ST7789V_LCD_H
 
 #include "scbb_config.h"
 
@@ -137,4 +137,4 @@ void axk_st7789v_lcd_fill(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,
 void axk_st7789v_lcd_clear(uint16_t color);
 
 #endif /* SCBB_ST7789V_LCD_ENABLED */
-#endif /* _AXK_ST7789V_LCD_H_ */
+#endif /* AXK_ST7789V_LCD_H */

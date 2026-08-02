@@ -11,8 +11,8 @@
  *
  * @copyright Copyright (c) 2026
  */
-#ifndef _AXK_OLED_096_SPI_H_
-#define _AXK_OLED_096_SPI_H_
+#ifndef AXK_OLED_096_SPI_H
+#define AXK_OLED_096_SPI_H
 
 #include "scbb_config.h"
 
@@ -83,4 +83,4 @@ void axk_oled_096_spi_set_pixel(int x, int y, int on);
 void axk_oled_096_spi_flush(void);
 
 #endif /* SCBB_OLED_096_SPI_ENABLED */
-#endif /* _AXK_OLED_096_SPI_H_ */
+#endif /* AXK_OLED_096_SPI_H */

@@ -12,8 +12,8 @@
  * @copyright Copyright (c) 2025
  *
  */
-#ifndef COLOR_MODE_H
-#define COLOR_MODE_H
+#ifndef AXK_COLOR_MODE_H
+#define AXK_COLOR_MODE_H
 #include <stdint.h>
 
 /** @brief 24 位 RGB 颜色表示。 */
@@ -21,14 +21,14 @@ typedef struct {
     uint8_t r; /**< 红色通道（0–255）。 */
     uint8_t g; /**< 绿色通道（0–255）。 */
     uint8_t b; /**< 蓝色通道（0–255）。 */
-} color_t;
+} axk_color_t;
 
 /** @brief HSV 颜色表示。 */
 typedef struct {
     float h; /**< 色相（0.0–360.0 度）。 */
     float s; /**< 饱和度（0.0–1.0）。 */
     float v; /**< 明度/亮度（0.0–1.0）。 */
-} hsv_color_t;
+} axk_hsv_color_t;
 
 /**
  * @brief 将 HSV 颜色转换为 RGB 颜色
@@ -36,9 +36,9 @@ typedef struct {
  * 使用标准 HSV→RGB 算法，含舍入处理以减少精度损失。
  *
  * @param[in]  hsv      HSV 颜色结构体
- * @return     color_t  RGB 颜色结构体
+ * @return     axk_color_t  RGB 颜色结构体
  */
-color_t hsv_to_rgb(hsv_color_t hsv);
+axk_color_t axk_hsv_to_rgb(axk_hsv_color_t hsv);
 
 /**
  * @brief 将 RGB 颜色转换为 HSV 颜色
@@ -46,9 +46,9 @@ color_t hsv_to_rgb(hsv_color_t hsv);
  * 将 0–255 RGB 归一化到 0.0–1.0，计算色相/饱和度/明度。
  *
  * @param[in]  rgb          RGB 颜色结构体
- * @return     hsv_color_t  HSV 颜色结构体
+ * @return     axk_hsv_color_t  HSV 颜色结构体
  */
-hsv_color_t rgb_to_hsv(color_t rgb);
+axk_hsv_color_t axk_rgb_to_hsv(axk_color_t rgb);
 
 /**
  * @brief 两个 RGB 颜色之间平滑过渡
@@ -63,8 +63,8 @@ hsv_color_t rgb_to_hsv(color_t rgb);
  * @param[in]  userData        用户数据指针
  * @note  回调可为 NULL，此时函数立即返回
  */
-void smoothcolorTransition(color_t start, color_t end, int steps,
-                           void (*updateCallback)(color_t, void *), void *userData);
+void axk_smooth_color_transition(axk_color_t start, axk_color_t end, int steps,
+                           void (*updateCallback)(axk_color_t, void *), void *userData);
 
 /**
  * @brief 生成 360 度色相渐变（彩虹效果）
@@ -74,8 +74,8 @@ void smoothcolorTransition(color_t start, color_t end, int steps,
  * @param[in]  callback    每步回调（接收颜色和步数索引）
  * @param[in]  data        用户数据指针
  */
-void generate360Gradient(int steps, float brightness,
-                         void (*callback)(color_t, int, void *), void *data);
+void axk_generate_360_gradient(int steps, float brightness,
+                         void (*callback)(axk_color_t, int, void *), void *data);
 
 /**
  * @brief 色轮动画，可配置速度
@@ -84,7 +84,7 @@ void generate360Gradient(int steps, float brightness,
  * @param[in]  updateColorOutput  每步输出回调
  * @param[in]  userData           用户数据指针
  */
-void animateColorWheel(uint8_t speed,
-                       void (*updateColorOutput)(color_t, void *), void *userData);
+void axk_animate_color_wheel(uint8_t speed,
+                       void (*updateColorOutput)(axk_color_t, void *), void *userData);
 
-#endif /* COLOR_MODE_H */
+#endif /* AXK_COLOR_MODE_H */

@@ -13,9 +13,8 @@
 
 #ifdef SCBB_RD03_V2_ENABLED
 
-#define UART_INIT(n,c)  AXK_RD03_V2_UART_ACLL(init, n, c)
-#define UART_GETC(n)    AXK_RD03_V2_UART_ACLL(getchar, n)
-#define DELAY_MS(x)     AXK_RD03_V2_DELAY_MS(x)
+#define AXK_RD03_V2_UART_INIT(n,c)  AXK_RD03_V2_UART_ACLL(init, n, c)
+#define AXK_RD03_V2_UART_GETCHAR(n)    AXK_RD03_V2_UART_ACLL(getchar, n)
 
 /**
  * @brief 初始化雷达 UART，波特率 115200
@@ -24,7 +23,7 @@
  */
 int axk_rd03_v2_init(void) {
     bsp_uart_cfg_t cfg = { .baudrate = 115200 };
-    UART_INIT(AXK_RD03_V2_UART, &cfg);
+    AXK_RD03_V2_UART_INIT(AXK_RD03_V2_UART, &cfg);
     return 0;
 }
 
@@ -38,30 +37,42 @@ int axk_rd03_v2_init(void) {
  *              - -1: 空指针或解析错误
  */
 int axk_rd03_v2_read(int *distance) {
-    if (!distance) return -1;
+    if (!distance) {
+        return -1;
+    }
     char buf[32];
     int idx = 0;
     int timeout = 0;
 
     while (idx < 31) {
-        int c = UART_GETC(AXK_RD03_V2_UART);
+        int c = AXK_RD03_V2_UART_GETCHAR(AXK_RD03_V2_UART);
         if (c >= 0) {
             buf[idx++] = (char)c;
-            if (c == '\n') break;
+            if (c == '\n') {
+                break;
+            }
         } else {
-            DELAY_MS(1);
-            if (++timeout > 100) break;
+            AXK_RD03_V2_DELAY_MS(1);
+            if (++timeout > 100) {
+                break;
+            }
         }
     }
     buf[idx] = '\0';
 
-    if (strncmp(buf, "OFF", 3) == 0) return 0;
+    if (strncmp(buf, "OFF", 3) == 0) {
+        return 0;
+    }
 
     char *p = strstr(buf, "distance:");
     if (p) {
         *distance = 0;
-        for (p += 9; *p >= '0' && *p <= '9'; p++)
+        for (p += 9; *p >= '0' && *p <= '9'; p++) {
+            if (*distance > 99999) {
+                break;
+            }
             *distance = *distance * 10 + (*p - '0');
+        }
         return 1;
     }
     return -1;

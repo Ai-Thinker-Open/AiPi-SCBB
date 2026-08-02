@@ -1,4 +1,5 @@
 build/
 .config
+.config.old
 scbb_config.h
 scbb_config.cmake

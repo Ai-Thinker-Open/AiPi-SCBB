@@ -13,36 +13,63 @@
 
 #ifdef SCBB_OLED_096_SPI_ENABLED
 
-#define SI(n,c)  AXK_OLED_096_SPI_SPI_ACLL(init,n,c)
-#define S8(n,b)  AXK_OLED_096_SPI_SPI_ACLL(send8,n,b)
-#define GI(p,m)  AXK_OLED_096_SPI_GPIO_ACLL(init,p,m)
-#define GS(p)    AXK_OLED_096_SPI_GPIO_ACLL(set,p)
-#define GR(p)    AXK_OLED_096_SPI_GPIO_ACLL(reset,p)
-#define DMS(x)   AXK_OLED_096_SPI_DELAY_MS(x)
+#define AXK_OLED_096_SPI_SPI_INIT(n,c)  AXK_OLED_096_SPI_SPI_ACLL(init,n,c)
+#define AXK_OLED_096_SPI_SEND8(n,b)  AXK_OLED_096_SPI_SPI_ACLL(send8,n,b)
+#define AXK_OLED_096_SPI_GPIO_INIT(p,m)  AXK_OLED_096_SPI_GPIO_ACLL(init,p,m)
+#define AXK_OLED_096_SPI_GPIO_SET(p)    AXK_OLED_096_SPI_GPIO_ACLL(set,p)
+#define AXK_OLED_096_SPI_GPIO_RESET(p)    AXK_OLED_096_SPI_GPIO_ACLL(reset,p)
 
-#define CS AXK_OLED_096_SPI_PIN_CS
-#define DC AXK_OLED_096_SPI_PIN_DC
-#define RS AXK_OLED_096_SPI_PIN_RST
-#define SDA AXK_OLED_096_SPI_PIN_SDA
-#define SCL AXK_OLED_096_SPI_PIN_SCL
-#define DEV AXK_OLED_096_SPI_SPI
+/**
+ * @brief 片选拉低
+ */
+static void axk_oled_cs_low(void) {
+    AXK_OLED_096_SPI_GPIO_RESET(AXK_OLED_096_SPI_PIN_CS);
+}
 
-static void cL(void){GR(CS);} static void cH(void){GS(CS);}
-static void dL(void){GR(DC);} static void dH(void){GS(DC);}
+/**
+ * @brief 片选拉高
+ */
+static void axk_oled_cs_high(void) {
+    AXK_OLED_096_SPI_GPIO_SET(AXK_OLED_096_SPI_PIN_CS);
+}
+
+/**
+ * @brief 数据/命令脚拉低（命令模式）
+ */
+static void axk_oled_dc_low(void) {
+    AXK_OLED_096_SPI_GPIO_RESET(AXK_OLED_096_SPI_PIN_DC);
+}
+
+/**
+ * @brief 数据/命令脚拉高（数据模式）
+ */
+static void axk_oled_dc_high(void) {
+    AXK_OLED_096_SPI_GPIO_SET(AXK_OLED_096_SPI_PIN_DC);
+}
 
 /**
  * @brief 向 SSD1306 发送命令字节
  *
  * @param[in]  c  命令字节值
  */
-static void cmd(uint8_t c) { dL();cL();S8(DEV,c);cH(); }
+static void axk_oled_cmd(uint8_t c) {
+    axk_oled_dc_low();
+    axk_oled_cs_low();
+    AXK_OLED_096_SPI_SEND8(AXK_OLED_096_SPI_SPI, c);
+    axk_oled_cs_high();
+}
 
 /**
  * @brief 向 SSD1306 发送数据字节
  *
  * @param[in]  d  数据字节值
  */
-static void dat(uint8_t d) { dH();cL();S8(DEV,d);cH(); }
+static void axk_oled_dat(uint8_t d) {
+    axk_oled_dc_high();
+    axk_oled_cs_low();
+    AXK_OLED_096_SPI_SEND8(AXK_OLED_096_SPI_SPI, d);
+    axk_oled_cs_high();
+}
 
 static uint8_t s_axk_oled_fb[128][8];
 
@@ -52,12 +79,20 @@ static uint8_t s_axk_oled_fb[128][8];
  * @return int  0: 成功
  */
 int axk_oled_096_spi_init(void) {
-    GI(CS,1);cH();GI(DC,1);dH();
-    GI(RS,1);GR(RS);DMS(10);GS(RS);DMS(100);
+    AXK_OLED_096_SPI_GPIO_INIT(AXK_OLED_096_SPI_PIN_CS, 1);
+    axk_oled_cs_high();
+    AXK_OLED_096_SPI_GPIO_INIT(AXK_OLED_096_SPI_PIN_DC, 1);
+    axk_oled_dc_high();
+    AXK_OLED_096_SPI_GPIO_INIT(AXK_OLED_096_SPI_PIN_RST, 1);
+    AXK_OLED_096_SPI_GPIO_RESET(AXK_OLED_096_SPI_PIN_RST);
+    AXK_OLED_096_SPI_DELAY_MS(10);
+    AXK_OLED_096_SPI_GPIO_SET(AXK_OLED_096_SPI_PIN_RST);
+    AXK_OLED_096_SPI_DELAY_MS(100);
 
-    GI(SDA,2);GI(SCL,3);
-    bsp_spi_cfg_t c={.freq=4000000,.mode=3,.data_width=8};
-    SI(DEV,&c);
+    AXK_OLED_096_SPI_GPIO_INIT(AXK_OLED_096_SPI_PIN_SDA, 2);
+    AXK_OLED_096_SPI_GPIO_INIT(AXK_OLED_096_SPI_PIN_SCL, 3);
+    bsp_spi_cfg_t c = {.freq = 4000000, .mode = 3, .data_width = 8};
+    AXK_OLED_096_SPI_SPI_INIT(AXK_OLED_096_SPI_SPI, &c);
 
     uint8_t init[] = {
         0xAE,        /* 关闭显示 */
@@ -77,7 +112,9 @@ int axk_oled_096_spi_init(void) {
         0xA6,        /* 正常显示 */
         0xAF,        /* 开启显示 */
     };
-    for(int i=0;i<sizeof(init);i++)cmd(init[i]);
+    for (unsigned int i = 0; i < sizeof(init); i++) {
+        axk_oled_cmd(init[i]);
+    }
     axk_oled_096_spi_clear(0);
     axk_oled_096_spi_flush();
     return 0;
@@ -100,20 +137,27 @@ void axk_oled_096_spi_clear(uint8_t color) {
  * @param[in]  on  1: 点亮，0: 熄灭
  */
 void axk_oled_096_spi_set_pixel(int x, int y, int on) {
-    if(x<0||x>=128||y<0||y>=64)return;
-    if(on) s_axk_oled_fb[x][y/8] |= (1<<(y%8));
-    else   s_axk_oled_fb[x][y/8] &= ~(1<<(y%8));
+    if (x < 0 || x >= 128 || y < 0 || y >= 64) {
+        return;
+    }
+    if (on) {
+        s_axk_oled_fb[x][y / 8] |= (1u << (y % 8));
+    } else {
+        s_axk_oled_fb[x][y / 8] &= ~(1u << (y % 8));
+    }
 }
 
 /**
  * @brief 通过 SPI 将 8 页全部刷新到 OLED 显示屏
  */
 void axk_oled_096_spi_flush(void) {
-    for(int page=0; page<8; page++) {
-        cmd(0xB0+page);
-        cmd(0x00);
-        cmd(0x10);
-        for(int x=0; x<128; x++)dat(s_axk_oled_fb[x][page]);
+    for (int page = 0; page < 8; page++) {
+        axk_oled_cmd(0xB0 + page);
+        axk_oled_cmd(0x00);
+        axk_oled_cmd(0x10);
+        for (int x = 0; x < 128; x++) {
+            axk_oled_dat(s_axk_oled_fb[x][page]);
+        }
     }
 }
 #endif /* SCBB_OLED_096_SPI_ENABLED */

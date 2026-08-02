@@ -26,15 +26,17 @@ typedef struct {
 } axk_hxd039b2_circular_buf_t;
 
 static axk_hxd039b2_circular_buf_t s_axk_hxd_recv_buf;
-static unsigned char s_axk_ac_code[2] = {0x03, 0xF8};
+static volatile unsigned char s_axk_ac_code[2] = {0x03, 0xF8};
 static const unsigned char s_axk_learn_cmd[] = {0x30, 0x70, 0xA0};
 
 /** @brief 初始化环形缓冲区。
  *
  *  @param[in]  cb  环形缓冲区指针。
  */
-static void hxd039b2_buf_init(axk_hxd039b2_circular_buf_t *cb) {
-    if (cb == NULL) return;
+static void axk_hxd039b2_buf_init(axk_hxd039b2_circular_buf_t *cb) {
+    if (cb == NULL) {
+        return;
+    }
     cb->head = 0;
     cb->tail = 0;
     cb->count = 0;
@@ -46,8 +48,10 @@ static void hxd039b2_buf_init(axk_hxd039b2_circular_buf_t *cb) {
  *  @param[in]  cb  环形缓冲区指针。
  *  @return     1: 为空，0: 非空。
  */
-static int hxd039b2_buf_is_empty(axk_hxd039b2_circular_buf_t *cb) {
-    if (cb == NULL) return 1;
+static int axk_hxd039b2_buf_is_empty(axk_hxd039b2_circular_buf_t *cb) {
+    if (cb == NULL) {
+        return 1;
+    }
     return cb->count == 0;
 }
 
@@ -56,8 +60,10 @@ static int hxd039b2_buf_is_empty(axk_hxd039b2_circular_buf_t *cb) {
  *  @param[in]  cb  环形缓冲区指针。
  *  @return     1: 已满，0: 未满。
  */
-static int hxd039b2_buf_is_full(axk_hxd039b2_circular_buf_t *cb) {
-    if (cb == NULL) return 0;
+static int axk_hxd039b2_buf_is_full(axk_hxd039b2_circular_buf_t *cb) {
+    if (cb == NULL) {
+        return 0;
+    }
     return cb->count == AXK_HXD039B2_RECV_BUF_SIZE;
 }
 
@@ -67,9 +73,10 @@ static int hxd039b2_buf_is_full(axk_hxd039b2_circular_buf_t *cb) {
  *  @param[in]  data  要入队的数据。
  *  @return     0: 成功，-1: 已满或指针为空。
  */
-static int hxd039b2_buf_enqueue(axk_hxd039b2_circular_buf_t *cb, unsigned char data) {
-    if (cb == NULL) return -1;
-    if (hxd039b2_buf_is_full(cb)) return -1;
+static int axk_hxd039b2_buf_enqueue(axk_hxd039b2_circular_buf_t *cb, unsigned char data) {
+    if (cb == NULL || axk_hxd039b2_buf_is_full(cb)) {
+        return -1;
+    }
     cb->buffer[cb->head] = data;
     cb->head = (cb->head + 1) % AXK_HXD039B2_RECV_BUF_SIZE;
     cb->count++;
@@ -82,9 +89,10 @@ static int hxd039b2_buf_enqueue(axk_hxd039b2_circular_buf_t *cb, unsigned char d
  *  @param[out] data  数据输出缓冲区。
  *  @return     0: 成功，-1: 为空或指针为空。
  */
-static int hxd039b2_buf_dequeue(axk_hxd039b2_circular_buf_t *cb, unsigned char *data) {
-    if (cb == NULL || data == NULL) return -1;
-    if (hxd039b2_buf_is_empty(cb)) return -1;
+static int axk_hxd039b2_buf_dequeue(axk_hxd039b2_circular_buf_t *cb, unsigned char *data) {
+    if (cb == NULL || data == NULL || axk_hxd039b2_buf_is_empty(cb)) {
+        return -1;
+    }
     *data = cb->buffer[cb->tail];
     cb->tail = (cb->tail + 1) % AXK_HXD039B2_RECV_BUF_SIZE;
     cb->count--;
@@ -98,9 +106,13 @@ static int hxd039b2_buf_dequeue(axk_hxd039b2_circular_buf_t *cb, unsigned char *
  * @param[in]  data_len  数据长度
  * @return     int       0: 成功，-1: 指针为空，-2: 芯片忙碌
  */
-static int hxd039b2_send_data(unsigned char *data, int data_len) {
-    if (data == NULL || data_len <= 0) return -1;
-    if (AXK_HXD039B2_GPIO_ACLL(read, AXK_HXD039B2_BUSY_PIN) == 0) return -2;
+static int axk_hxd039b2_send_data(const unsigned char *data, int data_len) {
+    if (data == NULL || data_len <= 0) {
+        return -1;
+    }
+    if (AXK_HXD039B2_GPIO_ACLL(read, AXK_HXD039B2_BUSY_PIN) == 0) {
+        return -2;
+    }
     for (int i = 0; i < data_len; i++) {
         AXK_HXD039B2_UART_ACLL(send_byte, data[i]);
     }
@@ -116,15 +128,18 @@ int axk_hxd039b2_init(void) {
     AXK_HXD039B2_UART_ACLL(init);
     AXK_HXD039B2_GPIO_ACLL(init, AXK_HXD039B2_BUSY_PIN, 1);
 
-    int len = axk_hxd039b2_get_ac_code(s_axk_ac_code);
-    if (len == 0) {
-        if (s_axk_ac_code[0] == 0 && s_axk_ac_code[1] == 0) {
-            s_axk_ac_code[0] = 0x03;
-            s_axk_ac_code[1] = 0xF8;
-        }
+    unsigned char code[2];
+    code[0] = s_axk_ac_code[0];
+    code[1] = s_axk_ac_code[1];
+    int len = axk_hxd039b2_get_ac_code(code);
+    if (len == 0 && code[0] == 0 && code[1] == 0) {
+        code[0] = 0x03;
+        code[1] = 0xF8;
     }
+    s_axk_ac_code[0] = code[0];
+    s_axk_ac_code[1] = code[1];
 
-    hxd039b2_buf_init(&s_axk_hxd_recv_buf);
+    axk_hxd039b2_buf_init(&s_axk_hxd_recv_buf);
     return 0;
 }
 
@@ -134,104 +149,221 @@ int axk_hxd039b2_init(void) {
  * @param[in]  uart_data  接收到的字节
  */
 void axk_hxd039b2_uart_recv_cb(unsigned char uart_data) {
-    hxd039b2_buf_enqueue(&s_axk_hxd_recv_buf, uart_data);
-    if (hxd039b2_buf_is_full(&s_axk_hxd_recv_buf)) {
-        hxd039b2_buf_dequeue(&s_axk_hxd_recv_buf, &s_axk_ac_code[0]);
-        hxd039b2_buf_dequeue(&s_axk_hxd_recv_buf, &s_axk_ac_code[1]);
+    unsigned char code[2];
+    axk_hxd039b2_buf_enqueue(&s_axk_hxd_recv_buf, uart_data);
+    if (axk_hxd039b2_buf_is_full(&s_axk_hxd_recv_buf)) {
+        axk_hxd039b2_buf_dequeue(&s_axk_hxd_recv_buf, &code[0]);
+        axk_hxd039b2_buf_dequeue(&s_axk_hxd_recv_buf, &code[1]);
+        s_axk_ac_code[0] = code[0];
+        s_axk_ac_code[1] = code[1];
     }
 }
 
-// 保存空调码到持久化存储（TODO: 具体平台实现）.
+/**
+ * @brief 保存空调码到持久化存储
+ *
+ * @param[in]  ac_code  空调码缓冲区（2 字节）
+ * @param[in]  len      空调码长度
+ * @return     int      操作状态
+ *              - 0: 保存成功
+ *              - -1: 参数无效
+ * @note  当前为占位实现，具体平台持久化存储待接入
+ */
 int axk_hxd039b2_save_ac_code(unsigned char *ac_code, int len) {
-    if (ac_code == NULL || len <= 0) return -1;
-    (void)ac_code; (void)len;
+    if (ac_code == NULL || len <= 0) {
+        return -1;
+    }
+    (void)ac_code;
+    (void)len;
     return 0;
 }
 
-// 从持久化存储读取空调码（TODO: 具体平台实现）.
+/**
+ * @brief 从持久化存储读取空调码
+ *
+ * @param[out] code  空调码输出缓冲区（2 字节）
+ * @return     int   操作状态
+ *              - 0: 读取成功
+ *              - -1: 指针为空
+ * @note  当前为占位实现，具体平台持久化存储待接入
+ */
 int axk_hxd039b2_get_ac_code(unsigned char *code) {
-    if (code == NULL) return 0;
+    if (code == NULL) {
+        return -1;
+    }
     (void)code;
     return 0;
 }
 
+/**
+ * @brief 启动红外学习流程
+ *
+ * @return int  操作状态
+ *              - 0: 学习指令发送完成
+ */
 int axk_hxd039b2_start_learn(void) {
     AXK_HXD039B2_DELAY_MS(AXK_HXD039B2_START_TIME_MS);
-    hxd039b2_send_data((unsigned char *)s_axk_learn_cmd, 3);
+    axk_hxd039b2_send_data(s_axk_learn_cmd, 3);
     AXK_HXD039B2_DELAY_MS(AXK_HXD039B2_START_TIME_MS * 10);
     return 0;
 }
 
+/**
+ * @brief 设置空调电源开关
+ *
+ * @param[in]  power_state  电源状态（0: 关，非 0: 开）
+ * @return     int          操作状态
+ *              - 0: 发送成功
+ *              - -1: 参数无效
+ *              - -2: 芯片忙碌
+ */
 int axk_hxd039b2_set_power(int power_state) {
     AXK_HXD039B2_DELAY_MS(AXK_HXD039B2_START_TIME_MS);
+    unsigned char code0 = s_axk_ac_code[0];
+    unsigned char code1 = s_axk_ac_code[1];
     unsigned char ir_code[5] = {
         AXK_HXD039B2_IR_CODE_HANDLE, AXK_HXD039B2_IR_CODE_AC_TYPE,
-        s_axk_ac_code[0], s_axk_ac_code[1],
+        code0, code1,
         (unsigned char)(power_state ? AXK_HXD039B2_IR_CODE_AC_ON : AXK_HXD039B2_IR_CODE_AC_OFF)};
-    hxd039b2_send_data(ir_code, 5);
-    return 0;
+    return axk_hxd039b2_send_data(ir_code, 5);
 }
 
+/**
+ * @brief 设置空调运行模式
+ *
+ * @param[in]  mode  模式（0: 自动，1: 制冷，2: 除湿，3: 送风，4: 制热）
+ * @return     int   操作状态
+ *              - 0: 发送成功
+ *              - -1: 参数无效
+ *              - -2: 芯片忙碌
+ *              - -3: 模式越界
+ */
 int axk_hxd039b2_set_mode(int mode) {
+    if (mode < 0 || mode > 4) {
+        return -3;
+    }
     AXK_HXD039B2_DELAY_MS(AXK_HXD039B2_START_TIME_MS);
+    unsigned char code0 = s_axk_ac_code[0];
+    unsigned char code1 = s_axk_ac_code[1];
     unsigned char ir_code[5] = {
         AXK_HXD039B2_IR_CODE_HANDLE, AXK_HXD039B2_IR_CODE_AC_TYPE,
-        s_axk_ac_code[0], s_axk_ac_code[1],
+        code0, code1,
         (unsigned char)(AXK_HXD039B2_IR_CODE_AC_MODE_AUTO + mode)};
-    hxd039b2_send_data(ir_code, 5);
-    return 0;
+    return axk_hxd039b2_send_data(ir_code, 5);
 }
 
+/**
+ * @brief 设置空调温度
+ *
+ * @param[in]  temperature  温度值（16-31 摄氏度）
+ * @return     int          操作状态
+ *              - 0: 发送成功
+ *              - -1: 参数无效
+ *              - -2: 芯片忙碌
+ *              - -3: 温度越界
+ */
 int axk_hxd039b2_set_temperature(unsigned char temperature) {
+    if (temperature < 16 || temperature > 31) {
+        return -3;
+    }
     AXK_HXD039B2_DELAY_MS(AXK_HXD039B2_START_TIME_MS);
+    unsigned char code0 = s_axk_ac_code[0];
+    unsigned char code1 = s_axk_ac_code[1];
     unsigned char ir_code[5] = {
         AXK_HXD039B2_IR_CODE_HANDLE, AXK_HXD039B2_IR_CODE_AC_TYPE,
-        s_axk_ac_code[0], s_axk_ac_code[1],
+        code0, code1,
         (unsigned char)(temperature - 16 + AXK_HXD039B2_IR_CODE_AC_TEMPERATURE_16)};
-    hxd039b2_send_data(ir_code, 5);
-    return 0;
+    return axk_hxd039b2_send_data(ir_code, 5);
 }
 
+/**
+ * @brief 设置空调风速
+ *
+ * @param[in]  fan_mode  风速（0: 自动，1: 低，2: 中，3: 高）
+ * @return     int       操作状态
+ *              - 0: 发送成功
+ *              - -1: 参数无效
+ *              - -2: 芯片忙碌
+ *              - -3: 风速越界
+ */
 int axk_hxd039b2_set_fan_mode(unsigned char fan_mode) {
+    if (fan_mode > 3) {
+        return -3;
+    }
     AXK_HXD039B2_DELAY_MS(AXK_HXD039B2_START_TIME_MS);
+    unsigned char code0 = s_axk_ac_code[0];
+    unsigned char code1 = s_axk_ac_code[1];
     unsigned char ir_code[5] = {
         AXK_HXD039B2_IR_CODE_HANDLE, AXK_HXD039B2_IR_CODE_AC_TYPE,
-        s_axk_ac_code[0], s_axk_ac_code[1],
+        code0, code1,
         (unsigned char)(fan_mode + AXK_HXD039B2_IR_CODE_AC_FAN_MODE_AUTO)};
-    hxd039b2_send_data(ir_code, 5);
-    return 0;
+    return axk_hxd039b2_send_data(ir_code, 5);
 }
 
+/**
+ * @brief 设置导风条方向
+ *
+ * @param[in]  trend  方向（0: 上，1: 中，2: 下）
+ * @return     int    操作状态
+ *              - 0: 发送成功
+ *              - -1: 参数无效
+ *              - -2: 芯片忙碌
+ *              - -3: 方向越界
+ */
 int axk_hxd039b2_set_trend(unsigned char trend) {
+    if (trend > 2) {
+        return -3;
+    }
     AXK_HXD039B2_DELAY_MS(AXK_HXD039B2_START_TIME_MS);
+    unsigned char code0 = s_axk_ac_code[0];
+    unsigned char code1 = s_axk_ac_code[1];
     unsigned char ir_code[5] = {
         AXK_HXD039B2_IR_CODE_HANDLE, AXK_HXD039B2_IR_CODE_AC_TYPE,
-        s_axk_ac_code[0], s_axk_ac_code[1],
+        code0, code1,
         (unsigned char)(trend + AXK_HXD039B2_IR_CODE_AC_TREND_UP)};
-    hxd039b2_send_data(ir_code, 5);
-    return 0;
+    return axk_hxd039b2_send_data(ir_code, 5);
 }
 
+/**
+ * @brief 设置导风条自动摆动
+ *
+ * @param[in]  trend_auto  自动摆动（0: 关，非 0: 开）
+ * @return     int         操作状态
+ *              - 0: 发送成功
+ *              - -1: 参数无效
+ *              - -2: 芯片忙碌
+ */
 int axk_hxd039b2_set_trend_auto(unsigned char trend_auto) {
     AXK_HXD039B2_DELAY_MS(AXK_HXD039B2_START_TIME_MS);
+    unsigned char code0 = s_axk_ac_code[0];
+    unsigned char code1 = s_axk_ac_code[1];
     unsigned char ir_code[5] = {
         AXK_HXD039B2_IR_CODE_HANDLE, AXK_HXD039B2_IR_CODE_AC_TYPE,
-        s_axk_ac_code[0], s_axk_ac_code[1],
+        code0, code1,
         (unsigned char)(trend_auto ? AXK_HXD039B2_IR_CODE_AC_TREND_AUTO_ON
                                    : AXK_HXD039B2_IR_CODE_AC_TREND_AUTO_OFF)};
-    hxd039b2_send_data(ir_code, 5);
-    return 0;
+    return axk_hxd039b2_send_data(ir_code, 5);
 }
 
+/**
+ * @brief 设置空调灯光
+ *
+ * @param[in]  light_power  灯光（0: 关，非 0: 开）
+ * @return     int          操作状态
+ *              - 0: 发送成功
+ *              - -1: 参数无效
+ *              - -2: 芯片忙碌
+ */
 int axk_hxd039b2_set_light_power(unsigned char light_power) {
     AXK_HXD039B2_DELAY_MS(AXK_HXD039B2_START_TIME_MS);
+    unsigned char code0 = s_axk_ac_code[0];
+    unsigned char code1 = s_axk_ac_code[1];
     unsigned char ir_code[5] = {
         AXK_HXD039B2_IR_CODE_HANDLE, AXK_HXD039B2_IR_CODE_AC_TYPE,
-        s_axk_ac_code[0], s_axk_ac_code[1],
+        code0, code1,
         (unsigned char)(light_power ? AXK_HXD039B2_IR_CODE_AC_LIGHT_ON
                                     : AXK_HXD039B2_IR_CODE_AC_LIGHT_OFF)};
-    hxd039b2_send_data(ir_code, 5);
-    return 0;
+    return axk_hxd039b2_send_data(ir_code, 5);
 }
 
 #endif /* SCBB_HXD039B2_ENABLED */

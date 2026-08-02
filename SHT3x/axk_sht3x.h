@@ -10,8 +10,8 @@
  * @date 2026-01-29
  * @copyright Copyright (c) 2026
  */
-#ifndef __AXK_SHT3X_H__
-#define __AXK_SHT3X_H__
+#ifndef AXK_SHT3X_H
+#define AXK_SHT3X_H
 
 #include "scbb_config.h"
 
@@ -79,4 +79,4 @@ unsigned char axk_sht3x_read(unsigned int _mode, double *temp,
                              double *humidity);
 
 #endif /* SCBB_SHT3X_ENABLED */
-#endif /* __AXK_SHT3X_H__ */
+#endif /* AXK_SHT3X_H */

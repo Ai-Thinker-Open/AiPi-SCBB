@@ -10,8 +10,8 @@
  *
  * @copyright Copyright (c) 2026
  */
-#ifndef _AXK_RELAY_H_
-#define _AXK_RELAY_H_
+#ifndef AXK_RELAY_H
+#define AXK_RELAY_H
 
 #include "scbb_config.h"
 
@@ -55,4 +55,4 @@ void axk_relay_off(void);
 void axk_relay_toggle(void);
 
 #endif /* SCBB_RELAY_ENABLED */
-#endif /* _AXK_RELAY_H_ */
+#endif /* AXK_RELAY_H */

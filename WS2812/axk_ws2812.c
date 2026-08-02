@@ -6,7 +6,6 @@
  * @date 2026-01-30
  * @copyright Copyright (c) 2026
  */
-#include <stdlib.h>
 #include <string.h>
 
 #include "axk_ws2812.h"
@@ -16,37 +15,40 @@
 /** 当前活跃灯条的全局指针，由 axk_ws2812_init() 设置 */
 axk_ws2812_strip_t *g_axk_ws2812_strip_dev = NULL;
 
+/** 模块静态 LED 设备缓冲（最多 AXK_WS2812_MAX_NUM 颗） */
+static axk_ws2812_dev_t s_axk_ws2812_dev_buf[AXK_WS2812_MAX_NUM];
+
 /**
- * @brief 初始化 WS2812 灯条，分配设备数组并清空所有 LED
+ * @brief 初始化 WS2812 灯条，绑定设备数组并清空所有 LED
  *
  * @param[in/out] axk_ws2812_strip  用户提供的灯条结构体指针
  * @return       int                操作状态
  *                - 0: 初始化成功
- *                - -1: 参数为空或 led_count 为 0
- * @note         本函数使用 malloc 分配动态内存，资源受限平台需替换为静态分配
+ *                - -1: 参数为空、led_count 为 0 或超过上限
+ * @note         设备数组为 NULL 时使用模块静态缓冲（上限 AXK_WS2812_MAX_NUM）
  */
 int axk_ws2812_init(axk_ws2812_strip_t *axk_ws2812_strip) {
-  if ((axk_ws2812_strip == NULL) || (axk_ws2812_strip->led_count == 0)) {
-    return -1;
-  }
-  AXK_WS2812_ACLL(init, axk_ws2812_strip->led_count);
+    if ((axk_ws2812_strip == NULL) || (axk_ws2812_strip->led_count == 0) ||
+        (axk_ws2812_strip->led_count > AXK_WS2812_MAX_NUM)) {
+        return -1;
+    }
+    AXK_WS2812_ACLL(init, axk_ws2812_strip->led_count);
 
-  if (axk_ws2812_strip->dev == NULL) {
-    axk_ws2812_strip->dev =
-        malloc(axk_ws2812_strip->led_count * sizeof(axk_ws2812_dev_t));
+    if (axk_ws2812_strip->dev == NULL) {
+        axk_ws2812_strip->dev = s_axk_ws2812_dev_buf;
+    }
     axk_ws2812_strip->brightness = 0.5;
 
     for (unsigned char i = 0; i < axk_ws2812_strip->led_count; i++) {
-      axk_ws2812_strip->dev[i].color.r = 0;
-      axk_ws2812_strip->dev[i].color.g = 0;
-      axk_ws2812_strip->dev[i].color.b = 0;
+        axk_ws2812_strip->dev[i].color.r = 0;
+        axk_ws2812_strip->dev[i].color.g = 0;
+        axk_ws2812_strip->dev[i].color.b = 0;
     }
-  }
 
-  if (g_axk_ws2812_strip_dev == NULL) {
-    g_axk_ws2812_strip_dev = axk_ws2812_strip;
-  }
-  return 0;
+    if (g_axk_ws2812_strip_dev == NULL) {
+        g_axk_ws2812_strip_dev = axk_ws2812_strip;
+    }
+    return 0;
 }
 
 /**
@@ -63,13 +65,13 @@ void axk_ws2812_show_leds(void) { AXK_WS2812_ACLL(with_num); }
  * @param[in]  b      蓝色值（0–255）
  */
 void axk_ws2812_set_pixel_color(uint8_t index, uint8_t r, uint8_t g,
-                                uint8_t b) {
-  if (index >= g_axk_ws2812_strip_dev->led_count) {
-    return;
-  }
-  g_axk_ws2812_strip_dev->dev[index].color.r = r;
-  g_axk_ws2812_strip_dev->dev[index].color.g = g;
-  g_axk_ws2812_strip_dev->dev[index].color.b = b;
+                                                                uint8_t b) {
+    if (index >= g_axk_ws2812_strip_dev->led_count) {
+        return;
+    }
+    g_axk_ws2812_strip_dev->dev[index].color.r = r;
+    g_axk_ws2812_strip_dev->dev[index].color.g = g;
+    g_axk_ws2812_strip_dev->dev[index].color.b = b;
 }
 
 /**
@@ -79,13 +81,13 @@ void axk_ws2812_set_pixel_color(uint8_t index, uint8_t r, uint8_t g,
  * @param[in]  brightness 目标明度值（0.0–1.0）
  */
 void axk_ws2812_set_pixel_brightness(uint8_t index, float brightness) {
-  if (index >= g_axk_ws2812_strip_dev->led_count) {
-    return;
-  }
-  hsv_color_t hsv = rgb_to_hsv(g_axk_ws2812_strip_dev->dev[index].color);
-  hsv.v = brightness;
-  color_t rgb = hsv_to_rgb(hsv);
-  axk_ws2812_set_pixel_color(index, rgb.r, rgb.g, rgb.b);
+    if (index >= g_axk_ws2812_strip_dev->led_count) {
+        return;
+    }
+    axk_hsv_color_t hsv = axk_rgb_to_hsv(g_axk_ws2812_strip_dev->dev[index].color);
+    hsv.v = brightness;
+    axk_color_t rgb = axk_hsv_to_rgb(hsv);
+    axk_ws2812_set_pixel_color(index, rgb.r, rgb.g, rgb.b);
 }
 
 /**
@@ -97,18 +99,18 @@ void axk_ws2812_set_pixel_brightness(uint8_t index, float brightness) {
  * @param[in]  brightness 亮度系数（0.0–1.0）
  */
 void axk_ws2812_set_all_pixels_color(uint8_t r, uint8_t g, uint8_t b,
-                                     float brightness) {
-  color_t rgb = {r, g, b};
-  for (uint8_t i = 0; i < g_axk_ws2812_strip_dev->led_count; i++) {
-    rgb.r = r;
-    rgb.g = g;
-    rgb.b = b;
-    hsv_color_t hsv = rgb_to_hsv(rgb);
-    hsv.v = brightness;
-    rgb = hsv_to_rgb(hsv);
-    axk_ws2812_set_pixel_color(i, rgb.r, rgb.g, rgb.b);
-  }
-  axk_ws2812_show_leds();
+                                                                          float brightness) {
+    axk_color_t rgb = {r, g, b};
+    for (uint8_t i = 0; i < g_axk_ws2812_strip_dev->led_count; i++) {
+        rgb.r = r;
+        rgb.g = g;
+        rgb.b = b;
+        axk_hsv_color_t hsv = axk_rgb_to_hsv(rgb);
+        hsv.v = brightness;
+        rgb = axk_hsv_to_rgb(hsv);
+        axk_ws2812_set_pixel_color(i, rgb.r, rgb.g, rgb.b);
+    }
+    axk_ws2812_show_leds();
 }
 
 /**
@@ -117,14 +119,14 @@ void axk_ws2812_set_all_pixels_color(uint8_t r, uint8_t g, uint8_t b,
  * @param[in]  brightness 全局亮度（0.0–1.0）
  */
 void axk_ws2812_set_global_brightness(float brightness) {
-  g_axk_ws2812_strip_dev->brightness = brightness;
-  for (uint8_t i = 0; i < g_axk_ws2812_strip_dev->led_count; i++) {
-    hsv_color_t hsv = rgb_to_hsv(g_axk_ws2812_strip_dev->dev[i].color);
-    hsv.v = g_axk_ws2812_strip_dev->brightness;
-    color_t rgb = hsv_to_rgb(hsv);
-    axk_ws2812_set_pixel_color(i, rgb.r, rgb.g, rgb.b);
-  }
-  axk_ws2812_show_leds();
+    g_axk_ws2812_strip_dev->brightness = brightness;
+    for (uint8_t i = 0; i < g_axk_ws2812_strip_dev->led_count; i++) {
+        axk_hsv_color_t hsv = axk_rgb_to_hsv(g_axk_ws2812_strip_dev->dev[i].color);
+        hsv.v = g_axk_ws2812_strip_dev->brightness;
+        axk_color_t rgb = axk_hsv_to_rgb(hsv);
+        axk_ws2812_set_pixel_color(i, rgb.r, rgb.g, rgb.b);
+    }
+    axk_ws2812_show_leds();
 }
 
 /**
@@ -137,9 +139,13 @@ void axk_ws2812_set_global_brightness(float brightness) {
  */
 void axk_ws2812_set_pixel_color_hsv(uint8_t index, uint8_t h, uint8_t s,
                                     uint8_t v) {
-  hsv_color_t hsv = {h, s, v};
-  color_t rgb = hsv_to_rgb(hsv);
-  axk_ws2812_set_pixel_color(index, rgb.r, rgb.g, rgb.b);
+    axk_hsv_color_t hsv;
+    /* 将 0-255 输入映射到 HSV 标称范围（h: 0-360，s/v: 0.0-1.0） */
+    hsv.h = h * (360.0f / 255.0f);
+    hsv.s = s / 255.0f;
+    hsv.v = v / 255.0f;
+    axk_color_t rgb = axk_hsv_to_rgb(hsv);
+    axk_ws2812_set_pixel_color(index, rgb.r, rgb.g, rgb.b);
 }
 
 /**
@@ -148,7 +154,10 @@ void axk_ws2812_set_pixel_color_hsv(uint8_t index, uint8_t h, uint8_t s,
  * @param[in]  count  新的 LED 数量（1–60）
  */
 void axk_ws2812_set_led_count(uint8_t count) {
-  g_axk_ws2812_strip_dev->led_count = count;
+    if (count > AXK_WS2812_MAX_NUM) {
+        return;
+    }
+    g_axk_ws2812_strip_dev->led_count = count;
 }
 
 /**
@@ -157,7 +166,7 @@ void axk_ws2812_set_led_count(uint8_t count) {
  * @return unsigned char  LED 数量
  */
 unsigned char axk_ws2812_get_led_count(void) {
-  return g_axk_ws2812_strip_dev->led_count;
+    return g_axk_ws2812_strip_dev->led_count;
 }
 
 #endif /* SCBB_WS2812_ENABLED */

@@ -10,8 +10,8 @@
  * @date 2026-07-14
  * @copyright Copyright (c) 2026
  */
-#ifndef __AXK_HXD039B2_H__
-#define __AXK_HXD039B2_H__
+#ifndef AXK_HXD039B2_H
+#define AXK_HXD039B2_H
 
 #include "scbb_config.h"
 
@@ -165,4 +165,4 @@ int axk_hxd039b2_save_ac_code(unsigned char *ac_code, int len);
 int axk_hxd039b2_get_ac_code(unsigned char *code);
 
 #endif /* SCBB_HXD039B2_ENABLED */
-#endif /* __AXK_HXD039B2_H__ */
+#endif /* AXK_HXD039B2_H */
