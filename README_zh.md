@@ -4,9 +4,11 @@
 
 [![English](https://img.shields.io/badge/English-README-blue)](README.md)
 
-Ai-Thinker 通用外设驱动库，为 I2C、PWM+DMA、UART 协议的外部器件提供统一的硬件抽象层。
+Ai-Thinker 通用外设驱动库，为 I2C、SPI、PWM+DMA、UART、GPIO、单总线等协议的外部器件提供统一的硬件抽象层。
 
 平台无关设计 — 库通过可配置的 BSP（板级支持包）宏实现硬件抽象，你可以为任何 MCU 平台提供自己的 BSP 实现。
+
+内置 BSP：`BSP/Ai-M6x`（BL616/BL618，博流 Bouffalo SDK）和 `BSP/stm32f10x`（STM32 HAL）。
 
 ## 支持的模块
 
@@ -16,6 +18,13 @@ Ai-Thinker 通用外设驱动库，为 I2C、PWM+DMA、UART 协议的外部器�
 | SHT3x | 温湿度传感器 | I2C | 0x44 |
 | WS2812 | RGB LED 灯条驱动 + HSV/RGB 颜色工具 | PWM+DMA | — |
 | HXD039B2 | 红外编解码器（空调遥控器） | UART+GPIO | — |
+| ST7789V_LCD | ST7789V 驱动芯片 LCD 模块（1.47"/1.69"/1.9"/2.0"） | SPI+GPIO | — |
+| RELAY | 继电器驱动（高电平有效） | GPIO | — |
+| DHT11 | 温湿度传感器（单总线） | GPIO | — |
+| RD03_V2 | 毫米波雷达（人体存在/距离检测） | UART | — |
+| INA226 | 电压/电流/功率监测 | I2C | 0x40 |
+| DS1302 | RTC 实时时钟（3 线位操作） | GPIO | — |
+| OLED_096_SPI | 0.96" OLED 显示屏（SSD1306, 128x64） | SPI+GPIO | — |
 
 ## 环境准备
 
@@ -55,7 +64,7 @@ python menuconfig.py
   <img src="docs/img/enable_mod.png" alt="模块启用状态" width="70%">
 </p>
 
-5. 进入 `Output` 菜单设置 `scbb_config.h` 输出路径（默认：`config/scbb_config.h`）
+5. 进入 `Output` 菜单设置 `scbb_config.h` 输出路径（默认：项目根目录的 `scbb_config.h`）
 
 <p align="center">
   <img src="docs/img/scbb_config_path.jpg" alt="输出路径配置" width="70%">
@@ -67,14 +76,21 @@ python menuconfig.py
 
 ### 方法 2：手动编辑配置文件
 
-1. 将 `config/scbb_config.h` 复制到项目根目录
-2. 取消注释需要启用的模块：
+1. 在项目根目录创建 `scbb_config.h`（或先运行 `python menuconfig.py` 生成）
+2. 取消注释或添加需要启用的模块：
 
 ```c
 #define SCBB_CH224A_ENABLED 1   // 启用 CH224A
 #define SCBB_SHT3X_ENABLED 1    // 启用 SHT3x
 // #define SCBB_WS2812_ENABLED 1  // 取消注释以启用 WS2812
 // #define SCBB_HXD039B2_ENABLED 1 // 取消注释以启用 HXD039B2
+// #define SCBB_ST7789V_LCD_ENABLED 1 // 取消注释以启用 ST7789V_LCD
+// #define SCBB_RELAY_ENABLED 1       // 取消注释以启用 RELAY
+// #define SCBB_DHT11_ENABLED 1       // 取消注释以启用 DHT11
+// #define SCBB_RD03_V2_ENABLED 1     // 取消注释以启用 RD03_V2
+// #define SCBB_INA226_ENABLED 1      // 取消注释以启用 INA226
+// #define SCBB_DS1302_ENABLED 1      // 取消注释以启用 DS1302
+// #define SCBB_OLED_096_SPI_ENABLED 1 // 取消注释以启用 OLED_096_SPI
 ```
 
 3. 重新编译
@@ -129,8 +145,15 @@ target_link_libraries(your_app PRIVATE AiPi::SCBB)
    - `SHT3x/axk_sht3x.c` + `axk_sht3x.h`
    - `WS2812/axk_ws2812.c` + `axk_ws2812.h` + `color_mode.c` + `color_mode.h`
    - `HXD039B2/axk_hxd039b2.c` + `axk_hxd039b2.h`
+   - `ST7789V_LCD/axk_st7789v_lcd.c` + `axk_st7789v_lcd.h`
+   - `RELAY/axk_relay.c` + `axk_relay.h`
+   - `DHT11/axk_dht11.c` + `axk_dht11.h`
+   - `RD03_V2/axk_rd03_v2.c` + `axk_rd03_v2.h`
+   - `INA226/axk_ina226.c` + `axk_ina226.h`
+   - `DS1302/axk_ds1302.c` + `axk_ds1302.h`
+   - `OLED_096_SPI/axk_oled_096_spi.c` + `axk_oled_096_spi.h`
 
-2. 如果启用 `SCBB_USE_BSP`，还需添加 `STM32F10x_bsp/` 下对应的 BSP 源文件（仅 STM32F10x 平台需要）
+2. 如果启用 `SCBB_USE_BSP`，还需添加 `BSP/Ai-M6x/`（博流 BL616/BL618）或 `BSP/stm32f10x/`（STM32F10x）下对应的 BSP 源文件
 
 3. 确保 `scbb_config.h` 在头文件搜索路径中
 
@@ -155,10 +178,18 @@ git pull origin master
 AiPi-SCBB/
 ├── CH224A/           # USB-PD sink 控制器驱动（I2C）
 ├── SHT3x/            # 温湿度传感器驱动（I2C）
+├── INA226/           # 电压/电流/功率监测驱动（I2C）
 ├── WS2812/           # RGB LED 灯条驱动（PWM+DMA）
 ├── HXD039B2/         # 红外编解码驱动（UART+GPIO）
-├── STM32F10x_bsp/    # 板级支持包（I2C, PWM+DMA, UART, GPIO, delay）
-├── config/           # scbb_config.h 模板
+├── DHT11/            # 温湿度传感器驱动（单总线）
+├── DS1302/           # RTC 实时时钟驱动（3 线 GPIO）
+├── RELAY/            # 继电器驱动（GPIO）
+├── RD03_V2/          # 毫米波雷达驱动（UART）
+├── OLED_096_SPI/     # 0.96" OLED 显示屏驱动（SPI）
+├── ST7789V_LCD/      # ST7789V LCD 驱动（SPI）
+├── BSP/              # 板级支持包
+│   ├── Ai-M6x/       # 博流 BL616/BL618 板级支持包（I2C, SPI, UART, GPIO, LCD, delay）
+│   └── stm32f10x/    # STM32F10x 板级支持包（I2C, SPI, UART, GPIO, PWM+DMA, delay）
 ├── scripts/          # 配置生成脚本
 ├── Kconfig           # menuconfig 配置定义
 ├── menuconfig.py     # 图形化配置工具入口
