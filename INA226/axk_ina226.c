@@ -1,12 +1,14 @@
 /**
  * @file axk_ina226.c
- * @brief INA226 — 纯 ACLL I2C 跨平台实现。
  * @author xemowo (xemowo@qq.com)
+ * @brief 
  * @version 0.1.1
  * @date 2026-07-31
- *
+ * 
  * @copyright Copyright (c) 2026
+ * 
  */
+
 #include "axk_ina226.h"
 
 #ifdef SCBB_INA226_ENABLED
