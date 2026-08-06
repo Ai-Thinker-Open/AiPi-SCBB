@@ -244,6 +244,33 @@ if SCBB_OLED_096_SPI_ENABLED
         string "OLED_096_SPI - Delay BSP function prefix"
         default "bsp_delay"
 endif
+config SCBB_LLCC68_ENABLED
+    bool "Enable LLCC68 [LoRa RF module Ra-01SC/Ra-01SCH]"
+    default n
+    help
+        Enable LLCC68 LoRa radio transceiver driver (SPI).
+
+if SCBB_LLCC68_ENABLED
+    config SCBB_LLCC68_SPI_HEADER
+        string "LLCC68 - SPI BSP header"
+        default "stm32f10x_bsp_spi.h"
+    config SCBB_LLCC68_SPI_PREFIX
+        string "LLCC68 - SPI BSP function prefix"
+        default "bsp_spi"
+    config SCBB_LLCC68_GPIO_HEADER
+        string "LLCC68 - GPIO BSP header"
+        default "stm32f10x_bsp_gpio.h"
+    config SCBB_LLCC68_GPIO_PREFIX
+        string "LLCC68 - GPIO BSP function prefix"
+        default "bsp_gpio"
+    config SCBB_LLCC68_DELAY_HEADER
+        string "LLCC68 - Delay BSP header"
+        default "stm32f10x_delay.h"
+    config SCBB_LLCC68_DELAY_PREFIX
+        string "LLCC68 - Delay BSP function prefix"
+        default "delay"
+endif
+
 menu "Output"
     config SCBB_CONFIG_HEADER_PATH
         string "scbb_config.h output path"

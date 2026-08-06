@@ -23,7 +23,7 @@ macro(scbb_read_config)
     if(EXISTS "${_config_path}")
         file(READ "${_config_path}" _config_content)
 
-        set(_all_modules CH224A SHT3X WS2812 HXD039B2 ST7789V_LCD RELAY DHT11 RD03_V2 OLED_096_SPI DS1302 INA226)
+        set(_all_modules CH224A SHT3X WS2812 HXD039B2 ST7789V_LCD RELAY DHT11 RD03_V2 OLED_096_SPI DS1302 INA226 LLCC68)
         foreach(_mod ${_all_modules})
             if(_config_content MATCHES "#define SCBB_${_mod}_ENABLED")
                 set(SCBB_${_mod}_ENABLED ON)
@@ -118,6 +118,14 @@ set(SCBB_OLED_096_SPI_DELAY_HEADER "bl616_bsp_delay.h" CACHE STRING "OLED_096_SP
 set(SCBB_OLED_096_SPI_DELAY_PREFIX "bsp_delay"         CACHE STRING "OLED_096_SPI Delay BSP function prefix")
 
 # RD03_V2
+# LLCC68 (STM32F10x)
+set(SCBB_LLCC68_SPI_HEADER   "stm32f10x_bsp_spi.h"  CACHE STRING "LLCC68 SPI BSP header")
+set(SCBB_LLCC68_SPI_PREFIX   "bsp_spi"              CACHE STRING "LLCC68 SPI BSP function prefix")
+set(SCBB_LLCC68_GPIO_HEADER  "stm32f10x_bsp_gpio.h" CACHE STRING "LLCC68 GPIO BSP header")
+set(SCBB_LLCC68_GPIO_PREFIX  "bsp_gpio"             CACHE STRING "LLCC68 GPIO BSP function prefix")
+set(SCBB_LLCC68_DELAY_HEADER "stm32f10x_delay.h"    CACHE STRING "LLCC68 Delay BSP header")
+set(SCBB_LLCC68_DELAY_PREFIX "delay"                CACHE STRING "LLCC68 Delay BSP function prefix")
+
 set(SCBB_RD03_V2_UART_HEADER "bl616_bsp_uart.h"   CACHE STRING "RD03_V2 UART BSP header")
 set(SCBB_RD03_V2_UART_PREFIX "bsp_uart"           CACHE STRING "RD03_V2 UART BSP function prefix")
 set(SCBB_RD03_V2_DELAY_HEADER "bl616_bsp_delay.h" CACHE STRING "RD03_V2 Delay BSP header")
@@ -233,6 +241,16 @@ endif()
 endif()
 
 # ─── Include built-in BSP if enabled ──────────────────────────────
+# LLCC68 module
+if(SCBB_LLCC68_ENABLED)
+    list(APPEND SCBB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/LLCC68/axk_llcc68.c)
+    list(APPEND SCBB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/LLCC68/axk_llcc68.h)
+    if(SCBB_IS_TOP_LEVEL)
+        message(STATUS "AiPi-SCBB: LLCC68 enabled (SPI+GPIO)")
+    endif()
+endif()
+
+# ─── Include built-in BSP if enabled ──────────────────────────────
 if(SCBB_USE_BSP)
     # Collect BSP dependencies from enabled modules
     set(SCBB_BSP_DIRS "")
@@ -246,6 +264,9 @@ if(SCBB_USE_BSP)
         list(APPEND SCBB_BSP_DIRS uart gpio)
     endif()
     if(SCBB_ST7789V_LCD_ENABLED)
+        list(APPEND SCBB_BSP_DIRS spi gpio delay)
+    endif()
+    if(SCBB_LLCC68_ENABLED)
         list(APPEND SCBB_BSP_DIRS spi gpio delay)
     endif()
 
@@ -321,6 +342,9 @@ if(SCBB_SOURCES)
     if(SCBB_RD03_V2_ENABLED)
         target_compile_definitions(aipi_scbb PUBLIC SCBB_RD03_V2_ENABLED=1)
     endif()
+    if(SCBB_LLCC68_ENABLED)
+        target_compile_definitions(aipi_scbb PUBLIC SCBB_LLCC68_ENABLED=1)
+    endif()
 
     # Link built-in BSP libraries
     if(SCBB_USE_BSP)
@@ -344,6 +368,17 @@ if(SCBB_SOURCES)
             endif()
         endif()
         if(SCBB_ST7789V_LCD_ENABLED)
+            if(TARGET aipi_bsp_spi)
+                target_link_libraries(aipi_scbb PUBLIC aipi_bsp_spi)
+            endif()
+            if(TARGET aipi_bsp_gpio)
+                target_link_libraries(aipi_scbb PUBLIC aipi_bsp_gpio)
+            endif()
+            if(TARGET aipi_bsp_delay)
+                target_link_libraries(aipi_scbb PUBLIC aipi_bsp_delay)
+            endif()
+        endif()
+        if(SCBB_LLCC68_ENABLED)
             if(TARGET aipi_bsp_spi)
                 target_link_libraries(aipi_scbb PUBLIC aipi_bsp_spi)
             endif()
@@ -396,6 +431,26 @@ if(SCBB_SOURCES)
                 "SCBB_ST7789V_LCD_GPIO_PREFIX=${SCBB_ST7789V_LCD_GPIO_PREFIX}"
                 "SCBB_ST7789V_LCD_DELAY_HEADER=\"${SCBB_ST7789V_LCD_DELAY_HEADER}\""
                 "SCBB_ST7789V_LCD_DELAY_PREFIX=${SCBB_ST7789V_LCD_DELAY_PREFIX}"
+            )
+        endif()
+        if(SCBB_ST7789V_LCD_ENABLED)
+            target_compile_definitions(aipi_scbb PUBLIC
+                "SCBB_ST7789V_LCD_SPI_HEADER=\"${SCBB_ST7789V_LCD_SPI_HEADER}\""
+                "SCBB_ST7789V_LCD_SPI_PREFIX=${SCBB_ST7789V_LCD_SPI_PREFIX}"
+                "SCBB_ST7789V_LCD_GPIO_HEADER=\"${SCBB_ST7789V_LCD_GPIO_HEADER}\""
+                "SCBB_ST7789V_LCD_GPIO_PREFIX=${SCBB_ST7789V_LCD_GPIO_PREFIX}"
+                "SCBB_ST7789V_LCD_DELAY_HEADER=\"${SCBB_ST7789V_LCD_DELAY_HEADER}\""
+                "SCBB_ST7789V_LCD_DELAY_PREFIX=${SCBB_ST7789V_LCD_DELAY_PREFIX}"
+            )
+        endif()
+        if(SCBB_LLCC68_ENABLED)
+            target_compile_definitions(aipi_scbb PUBLIC
+                "SCBB_LLCC68_SPI_HEADER=\"${SCBB_LLCC68_SPI_HEADER}\""
+                "SCBB_LLCC68_SPI_PREFIX=${SCBB_LLCC68_SPI_PREFIX}"
+                "SCBB_LLCC68_GPIO_HEADER=\"${SCBB_LLCC68_GPIO_HEADER}\""
+                "SCBB_LLCC68_GPIO_PREFIX=${SCBB_LLCC68_GPIO_PREFIX}"
+                "SCBB_LLCC68_DELAY_HEADER=\"${SCBB_LLCC68_DELAY_HEADER}\""
+                "SCBB_LLCC68_DELAY_PREFIX=${SCBB_LLCC68_DELAY_PREFIX}"
             )
         endif()
     endif()
