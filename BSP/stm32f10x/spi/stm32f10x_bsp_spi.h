@@ -49,4 +49,13 @@ void bsp_spi_send8(const char *name, uint8_t data);
  */
 void bsp_spi_send16(const char *name, const uint16_t *data, uint32_t n);
 
+/**
+ * @brief 全双工收发一个 8 位数据（阻塞，100ms 超时）
+ *
+ * @param[in]  name  SPI 设备名（保留）
+ * @param[in]  tx    待发送的字节
+ * @return     uint8_t  接收到的字节
+ */
+uint8_t bsp_spi_transfer8(const char *name, uint8_t tx);
+
 #endif /* STM32F10X_BSP_SPI_H */
