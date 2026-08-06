@@ -3,3 +3,4 @@ build/
 .config.old
 scbb_config.h
 scbb_config.cmake
+.mimocode/
